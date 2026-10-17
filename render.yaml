@@ -1,6 +1,6 @@
 # ==============================================================================
 # ROYAL BULL CAPITAL — RENDER BLUEPRINT SPECIFICATION
-# One-click deployment for FastAPI backend, React/Vite frontend, and PostgreSQL database.
+# Free-tier deployment for FastAPI backend and React/Vite frontend static site.
 # Docs: https://render.com/docs/blueprint-spec
 # ==============================================================================
 
@@ -24,9 +24,7 @@ services:
       - key: PORT
         value: 10000
       - key: DATABASE_URL
-        fromDatabase:
-          name: royal-bull-db
-          property: connectionString
+        value: sqlite:///./royal_bull_capital.db
       - key: JWT_SECRET_KEY
         generateValue: true
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
@@ -59,13 +57,3 @@ services:
           type: web
           name: royal-bull-backend
           property: host
-
-# ------------------------------------------------------------------------------
-# 3. Managed PostgreSQL Database (Free Tier)
-# ------------------------------------------------------------------------------
-databases:
-  - name: royal-bull-db
-    databaseName: royal_bull_capital
-    user: royalbull_user
-    plan: free
-    region: oregon
