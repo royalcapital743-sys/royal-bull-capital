@@ -163,7 +163,21 @@ export const Navbar: React.FC = () => {
                 </Link>
               </>
             ) : (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5">
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm ${
+                      location.pathname.startsWith('/admin')
+                        ? 'bg-gold-gradient text-obsidian-950 font-extrabold shadow-gold-glow'
+                        : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 border border-amber-500/40'
+                    }`}
+                  >
+                    <Sliders className="w-3.5 h-3.5" />
+                    <span>Admin Console</span>
+                  </Link>
+                )}
+
                 {/* User Portal Dropdown Trigger */}
                 <div className="relative">
                   <button 
@@ -296,6 +310,16 @@ export const Navbar: React.FC = () => {
               </>
             ) : (
               <>
+                {isAdmin && (
+                  <Link 
+                    to="/admin" 
+                    onClick={() => setMobileMenuOpen(false)} 
+                    className="w-full text-center py-2.5 rounded-xl bg-gold-gradient text-obsidian-950 font-bold text-sm shadow-gold-glow flex items-center justify-center gap-2 mb-1"
+                  >
+                    <Sliders className="w-4 h-4" />
+                    <span>Open Admin Console</span>
+                  </Link>
+                )}
                 <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="w-full text-center py-2.5 rounded-lg bg-slate-100 dark:bg-obsidian-850 text-slate-900 dark:text-white text-sm font-semibold border border-amber-300">Open Client Overview</Link>
                 <button 
                   onClick={() => {

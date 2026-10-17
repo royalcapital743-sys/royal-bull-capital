@@ -20,13 +20,22 @@ export const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      await login(email, password);
-      navigate('/dashboard');
+      const loggedIn = await login(email, password);
+      if (loggedIn?.role === 'admin' || loggedIn?.role === 'superadmin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       setError(err.message || 'Invalid email or password.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFillAdmin = () => {
+    setEmail('admin@royalbull.com');
+    setPassword('Admin123!');
   };
 
 
@@ -91,6 +100,18 @@ export const Login: React.FC = () => {
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
+
+        {/* Demo Fast Login Helper */}
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={handleFillAdmin}
+            className="w-full py-2.5 px-3 rounded-xl bg-obsidian-900 hover:bg-obsidian-850 text-amber-400 border border-amber-500/30 hover:border-amber-500/50 text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-sm group"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-gold-400 group-hover:scale-110 transition-transform" />
+            <span>Fill Superadmin Demo Credentials (`admin@royalbull.com`)</span>
+          </button>
+        </div>
 
         <div className="text-center text-xs text-slate-400 pt-4 border-t border-white/10">
           Don't have an account yet?{' '}

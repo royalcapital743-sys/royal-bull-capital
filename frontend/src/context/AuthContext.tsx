@@ -8,7 +8,7 @@ interface AuthContextType {
   profile: ProfileResponse | null;
   isLoading: boolean;
   isAdmin: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
   register: (name: string, email: string, password: string, referralCode?: string) => Promise<void>;
   logout: () => void;
   refreshProfile: () => Promise<void>;
@@ -58,7 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     refreshProfile();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<User> => {
     setIsLoading(true);
     try {
       const res = await api.post<{ access_token: string; refresh_token: string; user: User }>('/auth/login', {
@@ -69,6 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('royalbull_refresh_token', res.refresh_token);
       setUser(res.user);
       await refreshProfile();
+      return res.user;
     } finally {
       setIsLoading(false);
     }
