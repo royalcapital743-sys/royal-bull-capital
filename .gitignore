@@ -1,0 +1,69 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+.pnp
+.pnp.js
+
+# Production build outputs
+dist/
+frontend/dist/
+build/
+
+# Legacy prototype archive
+FX_Nexus_Functional_Referral_Demo/
+
+# Vite temporary files
+*.timestamp-*.mjs
+*.mjs.map
+
+# Python & Virtual Environments
+__pycache__/
+*/__pycache__/
+*/*/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local Environment & Secrets
+.env
+backend/.env
+frontend/.env.local
+frontend/.env.*.local
+*.local
+
+# Database files (Render provisions PostgreSQL automatically)
+*.db
+*.sqlite
+*.sqlite3
+royal_bull_capital.db
+backend/royal_bull_capital.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+pids
+*.pid
+*.seed
+
+# Editor & OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

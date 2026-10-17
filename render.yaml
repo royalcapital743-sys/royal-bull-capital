@@ -1,0 +1,73 @@
+# ==============================================================================
+# ROYAL BULL CAPITAL — RENDER BLUEPRINT SPECIFICATION
+# One-click deployment for FastAPI backend, React/Vite frontend, and PostgreSQL database.
+# Docs: https://render.com/docs/blueprint-spec
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # 1. FastAPI Python Backend Service
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: royal-bull-backend
+    runtime: python
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: royal-bull-db
+          property: connectionString
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 60
+      - key: REFRESH_TOKEN_EXPIRE_DAYS
+        value: 14
+      - key: INITIAL_ADMIN_PASSWORD
+        value: Admin123!
+      - key: ALLOWED_ORIGINS
+        value: "*"
+
+  # ----------------------------------------------------------------------------
+  # 2. React / Vite Frontend Static Site (Global Edge CDN)
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: royal-bull-frontend
+    env: static
+    region: oregon
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    autoDeploy: true
+    routes:
+      # SPA rewrite rule to route all frontend paths to index.html
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: royal-bull-backend
+          property: host
+
+# ------------------------------------------------------------------------------
+# 3. Managed PostgreSQL Database (Free Tier)
+# ------------------------------------------------------------------------------
+databases:
+  - name: royal-bull-db
+    databaseName: royal_bull_capital
+    user: royalbull_user
+    plan: free
+    region: oregon
