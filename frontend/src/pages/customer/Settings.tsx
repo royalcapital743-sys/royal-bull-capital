@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api, formatDateTime } from '../../api/client';
+import { CustomerLayout } from '../../components/CustomerLayout';
 import { User, Lock, Shield, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export const Settings: React.FC = () => {
@@ -44,70 +45,59 @@ export const Settings: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
-      
-      {/* Header */}
-      <div className="space-y-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-500/10 text-gold-400 border border-gold-500/20 text-xs font-semibold uppercase tracking-wider">
-          <User className="w-3.5 h-3.5" /> Account Governance
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-display font-extrabold text-white">
-          Profile & Security Settings
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-400">
-          Review your account lineage, verification status, and manage your access credentials.
-        </p>
-      </div>
-
+    <CustomerLayout
+      title="Profile & Security Settings"
+      subtitle="Review your account lineage, verification status, and manage your access credentials."
+    >
       {/* Profile Overview Card */}
-      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/5 space-y-6">
-        <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          <Shield className="w-5 h-5 text-gold-400" /> Account Profile Details
+      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 space-y-6 shadow-sm">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <Shield className="w-5 h-5 text-amber-600 dark:text-gold-400" /> Account Profile Details
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
-          <div className="p-4 rounded-xl bg-obsidian-900 border border-white/5 space-y-1">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-white/10 space-y-1">
             <span className="text-[10px] uppercase font-bold text-slate-500 font-sans block">Client Full Name</span>
-            <span className="text-white font-bold">{user?.name}</span>
+            <span className="text-slate-900 dark:text-white font-bold">{user?.name}</span>
           </div>
-          <div className="p-4 rounded-xl bg-obsidian-900 border border-white/5 space-y-1">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-white/10 space-y-1">
             <span className="text-[10px] uppercase font-bold text-slate-500 font-sans block">Verified Email Address</span>
-            <span className="text-white font-bold">{user?.email}</span>
+            <span className="text-slate-900 dark:text-white font-bold">{user?.email}</span>
           </div>
-          <div className="p-4 rounded-xl bg-obsidian-900 border border-white/5 space-y-1">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-white/10 space-y-1">
             <span className="text-[10px] uppercase font-bold text-slate-500 font-sans block">Assigned Referral Code</span>
-            <span className="text-gold-400 font-bold">{user?.referral_code}</span>
+            <span className="text-amber-700 dark:text-gold-400 font-bold">{user?.referral_code}</span>
           </div>
-          <div className="p-4 rounded-xl bg-obsidian-900 border border-white/5 space-y-1">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-white/10 space-y-1">
             <span className="text-[10px] uppercase font-bold text-slate-500 font-sans block">Platform Role</span>
-            <span className="text-white font-bold uppercase">{user?.role}</span>
+            <span className="text-slate-900 dark:text-white font-bold uppercase">{user?.role}</span>
           </div>
-          <div className="p-4 rounded-xl bg-obsidian-900 border border-white/5 space-y-1">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-white/10 space-y-1">
             <span className="text-[10px] uppercase font-bold text-slate-500 font-sans block">Account Identifier (ID)</span>
-            <span className="text-slate-400 font-bold text-[11px] truncate">{user?.id}</span>
+            <span className="text-slate-600 dark:text-slate-400 font-bold text-[11px] truncate">{user?.id}</span>
           </div>
-          <div className="p-4 rounded-xl bg-obsidian-900 border border-white/5 space-y-1">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-white/10 space-y-1">
             <span className="text-[10px] uppercase font-bold text-slate-500 font-sans block">Member Since</span>
-            <span className="text-slate-300 font-bold">{formatDateTime(user?.created_at)}</span>
+            <span className="text-slate-700 dark:text-slate-300 font-bold">{user?.created_at ? formatDateTime(user.created_at) : '—'}</span>
           </div>
         </div>
       </div>
 
       {/* Change Password Form */}
-      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/5 space-y-6">
-        <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          <Lock className="w-5 h-5 text-gold-400" /> Update Password Credentials
+      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 space-y-6 shadow-sm">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <Lock className="w-5 h-5 text-amber-600 dark:text-gold-400" /> Update Password Credentials
         </h2>
 
         {error && (
-          <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2.5">
+          <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs flex items-center gap-2.5">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {success && (
-          <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2.5">
+          <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2.5">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             <span>{success}</span>
           </div>
@@ -115,19 +105,19 @@ export const Settings: React.FC = () => {
 
         <form onSubmit={handlePasswordChange} className="space-y-4 max-w-lg">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block">Current Password</label>
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">Current Password</label>
             <input
               type="password"
               required
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               placeholder="Enter current password"
-              className="w-full bg-obsidian-900 border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-gold-500"
+              className="w-full bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-gold-500"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block">New Password</label>
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">New Password</label>
             <input
               type="password"
               required
@@ -135,12 +125,12 @@ export const Settings: React.FC = () => {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Minimum 6 characters"
-              className="w-full bg-obsidian-900 border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-gold-500"
+              className="w-full bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-gold-500"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block">Confirm New Password</label>
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">Confirm New Password</label>
             <input
               type="password"
               required
@@ -148,7 +138,7 @@ export const Settings: React.FC = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Repeat new password"
-              className="w-full bg-obsidian-900 border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-gold-500"
+              className="w-full bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-gold-500"
             />
           </div>
 
@@ -161,7 +151,6 @@ export const Settings: React.FC = () => {
           </button>
         </form>
       </div>
-
-    </div>
+    </CustomerLayout>
   );
 };

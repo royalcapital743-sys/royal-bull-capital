@@ -19,7 +19,8 @@ import {
   Sun,
   Moon,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Layers
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -57,7 +58,28 @@ export const Navbar: React.FC = () => {
           </Link>
 
           {/* Institutional Corporate Website Navigation */}
-          <nav className="hidden lg:flex items-center gap-4 xl:gap-6 shrink-0">
+          <nav className="hidden lg:flex items-center gap-3 xl:gap-5 shrink-0">
+            {user && (
+              <Link
+                to="/dashboard"
+                className={`text-xs xl:text-sm font-bold px-3 py-1.5 rounded-xl transition-all inline-flex items-center gap-1.5 shadow-sm whitespace-nowrap ${
+                  location.pathname.startsWith('/dashboard') ||
+                  location.pathname.startsWith('/deposit') ||
+                  location.pathname.startsWith('/referrals') ||
+                  location.pathname.startsWith('/wallet') ||
+                  location.pathname.startsWith('/withdrawals') ||
+                  location.pathname.startsWith('/notifications') ||
+                  location.pathname.startsWith('/support') ||
+                  location.pathname.startsWith('/settings')
+                    ? 'bg-gradient-to-r from-amber-500/20 to-gold-500/20 text-amber-800 dark:text-gold-300 border border-gold-500/40 shadow-gold-glow'
+                    : 'bg-gold-gradient text-obsidian-950 font-bold hover:brightness-110 active:scale-95'
+                }`}
+              >
+                <LayoutDashboard className="w-3.5 h-3.5" />
+                <span>Client Portal</span>
+              </Link>
+            )}
+
             <Link 
               to="/" 
               className={`text-xs xl:text-sm font-semibold transition-all relative py-1.5 whitespace-nowrap after:content-[''] after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:bg-amber-600 dark:after:bg-gold-500 after:transition-all after:duration-300 ${
@@ -184,74 +206,146 @@ export const Navbar: React.FC = () => {
                     onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                     className="flex items-center gap-2 bg-white dark:bg-obsidian-850 hover:bg-slate-50 dark:hover:bg-obsidian-800 border border-amber-300/80 dark:border-gold-500/30 px-3 py-1.5 rounded-xl transition-all shadow-sm"
                   >
-                    <div className="w-7 h-7 rounded-lg bg-gold-gradient text-obsidian-950 flex items-center justify-center font-bold text-xs uppercase">
+                    <div className="w-7 h-7 rounded-lg bg-gold-gradient text-obsidian-950 flex items-center justify-center font-bold text-xs uppercase shadow-sm">
                       {user.name.charAt(0)}
                     </div>
                     <div className="flex flex-col text-left">
                       <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-tight max-w-[120px] truncate">{user.name}</span>
                       <span className="text-[10px] text-amber-700 dark:text-gold-400 uppercase tracking-wider font-mono font-bold">Client Account</span>
                     </div>
-                    <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                    <ChevronDown className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-200 ${userDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
 
+                  {/* Backdrop overlay for quick dismissal */}
                   {userDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-obsidian-900 border border-slate-200 dark:border-gold-500/20 shadow-2xl py-2 z-50">
-                      <div className="px-4 py-2 border-b border-slate-100 dark:border-white/5">
-                        <p className="text-xs text-slate-500 dark:text-slate-400">Signed in as</p>
-                        <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">{user.email}</p>
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={() => setUserDropdownOpen(false)} 
+                    />
+                  )}
+
+                  {userDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-white dark:bg-obsidian-900 border border-slate-200 dark:border-gold-500/30 shadow-2xl py-2 z-50 divide-y divide-slate-100 dark:divide-white/5 animate-in fade-in slide-in-from-top-2 duration-150">
+                      {/* Account Summary Header */}
+                      <div className="px-4 py-3 bg-slate-50/70 dark:bg-obsidian-950/60">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Signed In As</p>
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-gold-400 font-bold">
+                            {user.referral_code}
+                          </span>
+                        </div>
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate mt-0.5">{user.email}</p>
                         {wallet && (
-                          <p className="text-xs font-bold text-amber-700 dark:text-gold-400 mt-1 font-mono">
-                            Balance: {formatMoney(wallet.total_balance_cents)}
-                          </p>
+                          <div className="mt-2 pt-2 border-t border-slate-200/60 dark:border-white/5 flex items-center justify-between">
+                            <span className="text-[11px] text-slate-500 font-medium">Available Balance:</span>
+                            <span className="text-xs font-bold font-mono text-emerald-600 dark:text-emerald-400">
+                              {formatMoney(wallet.total_balance_cents)}
+                            </span>
+                          </div>
                         )}
                       </div>
-                      <Link 
-                        to="/dashboard" 
-                        onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-obsidian-800"
-                      >
-                        <LayoutDashboard className="w-3.5 h-3.5 text-amber-600 dark:text-gold-500" /> Client Overview
-                      </Link>
-                      <Link 
-                        to="/deposit" 
-                        onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-obsidian-800"
-                      >
-                        <WalletIcon className="w-3.5 h-3.5 text-amber-600 dark:text-gold-500" /> USD Deposit
-                      </Link>
-                      <Link 
-                        to="/referrals" 
-                        onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-obsidian-800"
-                      >
-                        <Share2 className="w-3.5 h-3.5 text-amber-600 dark:text-gold-500" /> 10-Tier Network
-                      </Link>
-                      <Link 
-                        to="/withdrawals" 
-                        onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-obsidian-800"
-                      >
-                        <Shield className="w-3.5 h-3.5 text-amber-600 dark:text-gold-500" /> USD Withdrawals
-                      </Link>
-                      {isAdmin && (
+
+                      {/* Financial Navigation Group */}
+                      <div className="py-1.5">
+                        <div className="px-3.5 py-1 text-[10px] uppercase font-bold tracking-wider text-slate-400">Finances & Downline</div>
                         <Link 
-                          to="/admin" 
+                          to="/dashboard" 
                           onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-amber-800 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+                          className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-amber-800 dark:hover:text-gold-300 hover:bg-slate-100 dark:hover:bg-obsidian-800 transition-colors"
                         >
-                          <Sliders className="w-3.5 h-3.5 text-amber-600" /> Admin Console
+                          <LayoutDashboard className="w-4 h-4 text-amber-600 dark:text-gold-500" /> 
+                          <span>Client Overview</span>
                         </Link>
+                        <Link 
+                          to="/deposit" 
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-amber-800 dark:hover:text-gold-300 hover:bg-slate-100 dark:hover:bg-obsidian-800 transition-colors"
+                        >
+                          <WalletIcon className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> 
+                          <span>USD Deposit Desk</span>
+                        </Link>
+                        <Link 
+                          to="/referrals" 
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-amber-800 dark:hover:text-gold-300 hover:bg-slate-100 dark:hover:bg-obsidian-800 transition-colors"
+                        >
+                          <Share2 className="w-4 h-4 text-amber-600 dark:text-gold-500" /> 
+                          <span>10-Tier Partner Network</span>
+                        </Link>
+                        <Link 
+                          to="/wallet" 
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-amber-800 dark:hover:text-gold-300 hover:bg-slate-100 dark:hover:bg-obsidian-800 transition-colors"
+                        >
+                          <Layers className="w-4 h-4 text-blue-600 dark:text-blue-400" /> 
+                          <span>Wallet & Ledger Explorer</span>
+                        </Link>
+                        <Link 
+                          to="/withdrawals" 
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-amber-800 dark:hover:text-gold-300 hover:bg-slate-100 dark:hover:bg-obsidian-800 transition-colors"
+                        >
+                          <ArrowRight className="w-4 h-4 text-purple-600 dark:text-purple-400" /> 
+                          <span>USD Withdrawals</span>
+                        </Link>
+                      </div>
+
+                      {/* Account & Help Group */}
+                      <div className="py-1.5">
+                        <div className="px-3.5 py-1 text-[10px] uppercase font-bold tracking-wider text-slate-400">Account & Help</div>
+                        <Link 
+                          to="/notifications" 
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-amber-800 dark:hover:text-gold-300 hover:bg-slate-100 dark:hover:bg-obsidian-800 transition-colors"
+                        >
+                          <Bell className="w-4 h-4 text-amber-600 dark:text-amber-400" /> 
+                          <span>Notifications Center</span>
+                        </Link>
+                        <Link 
+                          to="/support" 
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-amber-800 dark:hover:text-gold-300 hover:bg-slate-100 dark:hover:bg-obsidian-800 transition-colors"
+                        >
+                          <HeadphonesIcon className="w-4 h-4 text-cyan-600 dark:text-cyan-400" /> 
+                          <span>Support Help Desk</span>
+                        </Link>
+                        <Link 
+                          to="/settings" 
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-amber-800 dark:hover:text-gold-300 hover:bg-slate-100 dark:hover:bg-obsidian-800 transition-colors"
+                        >
+                          <Sliders className="w-4 h-4 text-slate-500 dark:text-slate-400" /> 
+                          <span>Profile & Security</span>
+                        </Link>
+                      </div>
+
+                      {isAdmin && (
+                        <div className="py-1.5">
+                          <Link 
+                            to="/admin" 
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-bold text-amber-800 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-colors"
+                          >
+                            <Sliders className="w-4 h-4 text-amber-600" /> 
+                            <span>Admin Console</span>
+                          </Link>
+                        </div>
                       )}
-                      <button 
-                        onClick={() => {
-                          setUserDropdownOpen(false);
-                          logout();
-                          navigate('/');
-                        }}
-                        className="w-full text-left flex items-center gap-2 px-4 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 border-t border-slate-100 dark:border-white/5 mt-1"
-                      >
-                        <LogOut className="w-3.5 h-3.5" /> Sign Out
-                      </button>
+
+                      {/* Sign Out Button */}
+                      <div className="pt-1">
+                        <button 
+                          onClick={() => {
+                            setUserDropdownOpen(false);
+                            logout();
+                            navigate('/');
+                          }}
+                          className="w-full text-left flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                        >
+                          <LogOut className="w-4 h-4" /> 
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -273,16 +367,77 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white dark:bg-obsidian-900 border-b border-slate-200 dark:border-white/10 px-4 pt-3 pb-6 space-y-2">
-          <Link to="/" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-slate-700 dark:text-slate-300 hover:text-amber-700 text-sm font-medium">Home</Link>
-          <Link to="/about" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-slate-700 dark:text-slate-300 hover:text-amber-700 text-sm font-medium">About</Link>
-          <Link to="/referral-program" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-slate-700 dark:text-slate-300 hover:text-amber-700 text-sm font-medium">10-Tier Model</Link>
-          <Link to="/features" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-slate-700 dark:text-slate-300 hover:text-amber-700 text-sm font-medium">Prime Forex</Link>
-          <Link to="/how-it-works" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-slate-700 dark:text-slate-300 hover:text-amber-700 text-sm font-medium">How It Works</Link>
-          <Link to="/faq" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-slate-700 dark:text-slate-300 hover:text-amber-700 text-sm font-medium">FAQ</Link>
-          <Link to="/contact" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-slate-700 dark:text-slate-300 hover:text-amber-700 text-sm font-medium">Contact</Link>
+        <div className="lg:hidden bg-white dark:bg-obsidian-900 border-b border-slate-200 dark:border-white/10 px-4 pt-3 pb-6 space-y-3">
+          {/* If user logged in, put client portal links directly at top of drawer */}
+          {user && (
+            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 dark:text-white">{user.name}</span>
+                {wallet && (
+                  <span className="text-xs font-mono font-bold text-amber-700 dark:text-gold-400">
+                    {formatMoney(wallet.total_balance_cents)}
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <Link
+                  to="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3 py-2 rounded-xl bg-white dark:bg-obsidian-850 text-slate-800 dark:text-white text-xs font-bold border border-slate-200 dark:border-white/10 text-center"
+                >
+                  Overview
+                </Link>
+                <Link
+                  to="/deposit"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3 py-2 rounded-xl bg-gold-gradient text-obsidian-950 text-xs font-bold text-center"
+                >
+                  Deposit USD
+                </Link>
+                <Link
+                  to="/referrals"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3 py-2 rounded-xl bg-white dark:bg-obsidian-850 text-slate-800 dark:text-white text-xs font-bold border border-slate-200 dark:border-white/10 text-center"
+                >
+                  10-Tier Tree
+                </Link>
+                <Link
+                  to="/withdrawals"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3 py-2 rounded-xl bg-white dark:bg-obsidian-850 text-slate-800 dark:text-white text-xs font-bold border border-slate-200 dark:border-white/10 text-center"
+                >
+                  Withdrawals
+                </Link>
+                <Link
+                  to="/wallet"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3 py-2 rounded-xl bg-white dark:bg-obsidian-850 text-slate-800 dark:text-white text-xs font-bold border border-slate-200 dark:border-white/10 text-center"
+                >
+                  Wallet Ledger
+                </Link>
+                <Link
+                  to="/support"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3 py-2 rounded-xl bg-white dark:bg-obsidian-850 text-slate-800 dark:text-white text-xs font-bold border border-slate-200 dark:border-white/10 text-center"
+                >
+                  Support Desk
+                </Link>
+              </div>
+            </div>
+          )}
 
-          <div className="pt-3 pb-2 flex items-center justify-between border-t border-slate-200 dark:border-white/10 mt-3">
+          <div className="border-t border-slate-200 dark:border-white/10 pt-2 space-y-1">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block px-1">Navigation</span>
+            <Link to="/" onClick={() => setMobileMenuOpen(false)} className="block py-1.5 px-2 text-slate-700 dark:text-slate-300 hover:text-amber-700 text-sm font-medium">Home</Link>
+            <Link to="/about" onClick={() => setMobileMenuOpen(false)} className="block py-1.5 px-2 text-slate-700 dark:text-slate-300 hover:text-amber-700 text-sm font-medium">About</Link>
+            <Link to="/referral-program" onClick={() => setMobileMenuOpen(false)} className="block py-1.5 px-2 text-slate-700 dark:text-slate-300 hover:text-amber-700 text-sm font-medium">10-Tier Model</Link>
+            <Link to="/features" onClick={() => setMobileMenuOpen(false)} className="block py-1.5 px-2 text-slate-700 dark:text-slate-300 hover:text-amber-700 text-sm font-medium">Prime Forex</Link>
+            <Link to="/how-it-works" onClick={() => setMobileMenuOpen(false)} className="block py-1.5 px-2 text-slate-700 dark:text-slate-300 hover:text-amber-700 text-sm font-medium">How It Works</Link>
+            <Link to="/faq" onClick={() => setMobileMenuOpen(false)} className="block py-1.5 px-2 text-slate-700 dark:text-slate-300 hover:text-amber-700 text-sm font-medium">FAQ</Link>
+            <Link to="/contact" onClick={() => setMobileMenuOpen(false)} className="block py-1.5 px-2 text-slate-700 dark:text-slate-300 hover:text-amber-700 text-sm font-medium">Contact</Link>
+          </div>
+
+          <div className="pt-2 pb-1 flex items-center justify-between border-t border-slate-200 dark:border-white/10">
             <span className="text-xs text-slate-500 font-medium">Appearance</span>
             <button
               onClick={toggleTheme}
@@ -320,7 +475,6 @@ export const Navbar: React.FC = () => {
                     <span>Open Admin Console</span>
                   </Link>
                 )}
-                <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="w-full text-center py-2.5 rounded-lg bg-slate-100 dark:bg-obsidian-850 text-slate-900 dark:text-white text-sm font-semibold border border-amber-300">Open Client Overview</Link>
                 <button 
                   onClick={() => {
                     setMobileMenuOpen(false);

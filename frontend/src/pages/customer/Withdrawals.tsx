@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api, formatMoney, formatDateTime } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { Withdrawal as WithdrawalType } from '../../types';
+import { CustomerLayout } from '../../components/CustomerLayout';
 import { 
   ArrowUpRight, 
   Clock, 
@@ -42,7 +43,7 @@ export const Withdrawals: React.FC = () => {
 
     const available = (wallet?.total_balance_cents || 0) / 100;
     if (amountUsd > available) {
-      setError(`Insufficient balance. You have $${available.toFixed(2)} available.`);
+      setError(`Insufficient balance. You have $${available.toFixed(2)} USD available.`);
       return;
     }
 
@@ -53,7 +54,7 @@ export const Withdrawals: React.FC = () => {
         payout_method: payoutMethod,
         payout_details: payoutDetails.trim() || undefined,
       });
-      setSuccess(`Withdrawal request of $${amountUsd.toFixed(2)} submitted for review.`);
+      setSuccess(`Withdrawal request of $${amountUsd.toFixed(2)} USD submitted for administrative compliance review.`);
       setPayoutDetails('');
       fetchWithdrawals();
       refreshProfile();
@@ -65,44 +66,33 @@ export const Withdrawals: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
-      
-      {/* Header */}
-      <div className="space-y-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-500/10 text-gold-400 border border-gold-500/20 text-xs font-semibold uppercase tracking-wider">
-          <ArrowUpRight className="w-3.5 h-3.5" /> Payout Request Workflow
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-display font-extrabold text-white">
-          Withdrawal Requests
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-400">
-          Request payouts against your available balance. Each calendar month permits one active withdrawal request.
-        </p>
-      </div>
-
+    <CustomerLayout
+      title="USD Withdrawal Requests"
+      subtitle="Request payouts against your available balance. Each calendar month permits one active withdrawal request."
+    >
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Withdrawal Form */}
-        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-gold-500/30 space-y-6 shadow-2xl relative">
-          <div className="flex items-center justify-between pb-4 border-b border-white/10">
+        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-gold-500/30 space-y-6 shadow-xl relative">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/10">
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Available Balance</span>
-              <span className="text-2xl font-display font-bold text-gold-gradient">
+              <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider block">Available Balance</span>
+              <span className="text-2xl font-display font-black text-amber-700 dark:text-gold-gradient">
                 {formatMoney(wallet?.total_balance_cents)}
               </span>
             </div>
-            <span className="text-xs text-slate-400 font-mono">USD</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-mono font-bold">USD</span>
           </div>
 
           {error && (
-            <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2.5">
+            <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs flex items-center gap-2.5">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           {success && (
-            <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2.5">
+            <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2.5">
               <CheckCircle2 className="w-4 h-4 shrink-0" />
               <span>{success}</span>
             </div>
@@ -110,7 +100,7 @@ export const Withdrawals: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
                 Withdrawal Amount (USD)
               </label>
               <div className="relative">
@@ -123,19 +113,19 @@ export const Withdrawals: React.FC = () => {
                   required
                   value={amountUsd}
                   onChange={(e) => setAmountUsd(Number(e.target.value))}
-                  className="w-full bg-obsidian-900 border border-white/10 rounded-xl pl-8 pr-4 py-3 text-sm text-white font-mono font-bold focus:outline-none focus:border-gold-500"
+                  className="w-full bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-white/10 rounded-xl pl-8 pr-4 py-3 text-sm text-slate-900 dark:text-white font-mono font-bold focus:outline-none focus:border-gold-500"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
                 Payout Rail
               </label>
               <select
                 value={payoutMethod}
                 onChange={(e) => setPayoutMethod(e.target.value)}
-                className="w-full bg-obsidian-900 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-gold-500"
+                className="w-full bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-gold-500"
               >
                 <option value="SWIFT_WIRE">USD International Fedwire / SWIFT</option>
                 <option value="USD_DIGITAL_CUSTODY">USD Digital Reserve Settlement (1:1 USD)</option>
@@ -144,7 +134,7 @@ export const Withdrawals: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
                 USD Destination Details
               </label>
               <textarea
@@ -153,12 +143,12 @@ export const Withdrawals: React.FC = () => {
                 value={payoutDetails}
                 onChange={(e) => setPayoutDetails(e.target.value)}
                 placeholder="Beneficiary USD Account Number / ABA Routing / Fedwire Bank Details"
-                className="w-full bg-obsidian-900 border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-gold-500 resize-none font-mono"
+                className="w-full bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-gold-500 resize-none font-mono"
               />
             </div>
 
-            <div className="p-3.5 rounded-xl bg-obsidian-900/60 border border-white/5 text-[11px] text-slate-400 space-y-1">
-              <div className="flex items-center gap-1.5 text-gold-400 font-semibold">
+            <div className="p-3.5 rounded-xl bg-slate-100 dark:bg-obsidian-900/60 border border-slate-200 dark:border-white/5 text-[11px] text-slate-600 dark:text-slate-400 space-y-1">
+              <div className="flex items-center gap-1.5 text-amber-700 dark:text-gold-400 font-semibold">
                 <Calendar className="w-3.5 h-3.5" />
                 <span>MONTHLY LIMIT POLICY:</span>
               </div>
@@ -178,43 +168,43 @@ export const Withdrawals: React.FC = () => {
 
         {/* Withdrawal State Machine & History */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/5 space-y-4">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-gold-400" /> State Machine Governance
+          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 space-y-4 shadow-sm">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-amber-600 dark:text-gold-400" /> State Machine Governance
             </h3>
-            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
               Every withdrawal request triggers strict server-side validation. Approved requests deduct balances in prioritized order: Direct Bonus → Level Commissions → Monthly ROI → Principal Credits → Original Principal.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 text-xs">
-              <div className="p-3.5 rounded-xl bg-obsidian-900 border border-white/5">
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-white/10">
                 <span className="text-[10px] text-slate-500 uppercase font-bold block">1. Pending Review</span>
-                <p className="text-slate-300 mt-1">Submitted & queued for administrator approval.</p>
+                <p className="text-slate-600 dark:text-slate-300 mt-1">Submitted & queued for administrator approval.</p>
               </div>
-              <div className="p-3.5 rounded-xl bg-obsidian-900 border border-white/5">
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-white/10">
                 <span className="text-[10px] text-slate-500 uppercase font-bold block">2. Approved</span>
-                <p className="text-slate-300 mt-1">Debited from ledger with immutable audit reference.</p>
+                <p className="text-slate-600 dark:text-slate-300 mt-1">Debited from ledger with immutable audit reference.</p>
               </div>
-              <div className="p-3.5 rounded-xl bg-obsidian-900 border border-white/5">
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-white/10">
                 <span className="text-[10px] text-slate-500 uppercase font-bold block">3. Rejected</span>
-                <p className="text-slate-300 mt-1">Declined with recorded reason; balance intact.</p>
+                <p className="text-slate-600 dark:text-slate-300 mt-1">Declined with recorded reason; balance intact.</p>
               </div>
             </div>
           </div>
 
           {/* History Table */}
-          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/5 space-y-4">
-            <h3 className="text-lg font-bold text-white">Withdrawal History & Audits</h3>
+          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 space-y-4 shadow-sm">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Withdrawal History & Audits</h3>
 
             {withdrawals.length === 0 ? (
-              <div className="py-8 text-center text-slate-500 text-xs">
+              <div className="py-8 text-center text-slate-400 text-xs">
                 No withdrawal requests on record.
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+                <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-white/10 text-slate-400 uppercase font-bold tracking-wider">
+                    <tr className="border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">
                       <th className="py-2.5 px-3">Date</th>
                       <th className="py-2.5 px-3">Month</th>
                       <th className="py-2.5 px-3">Amount</th>
@@ -223,19 +213,19 @@ export const Withdrawals: React.FC = () => {
                       <th className="py-2.5 px-3">Review Notes</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5 font-mono">
+                  <tbody className="divide-y divide-slate-100 dark:divide-white/5 font-mono">
                     {withdrawals.map((w) => (
-                      <tr key={w.id} className="hover:bg-white/[0.02]">
-                        <td className="py-2.5 px-3 text-slate-400">{formatDateTime(w.created_at)}</td>
-                        <td className="py-2.5 px-3 text-slate-300">{w.month_key}</td>
-                        <td className="py-2.5 px-3 font-bold text-white">{formatMoney(w.amount_cents)}</td>
+                      <tr key={w.id} className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
+                        <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400">{formatDateTime(w.created_at)}</td>
+                        <td className="py-2.5 px-3 text-slate-800 dark:text-slate-300">{w.month_key}</td>
+                        <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-white">{formatMoney(w.amount_cents)}</td>
                         <td className="py-2.5 px-3">
                           <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
                             w.status === 'approved'
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
                               : w.status === 'pending'
-                              ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                              : 'bg-red-500/10 text-red-400 border border-red-500/30'
+                              ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30'
+                              : 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/30'
                           }`}>
                             {w.status === 'approved' && <CheckCircle2 className="w-3 h-3" />}
                             {w.status === 'pending' && <Clock className="w-3 h-3" />}
@@ -243,8 +233,8 @@ export const Withdrawals: React.FC = () => {
                             <span>{w.status}</span>
                           </span>
                         </td>
-                        <td className="py-2.5 px-3 text-slate-400 font-sans text-[11px]">{w.payout_method}</td>
-                        <td className="py-2.5 px-3 text-slate-400 font-sans text-[11px]">
+                        <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400 font-sans text-[11px]">{w.payout_method}</td>
+                        <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400 font-sans text-[11px]">
                           {w.rejection_reason || (w.reviewed_at ? `Approved ${formatDateTime(w.reviewed_at)}` : 'Awaiting review')}
                         </td>
                       </tr>
@@ -256,6 +246,6 @@ export const Withdrawals: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </CustomerLayout>
   );
 };
