@@ -101,7 +101,7 @@ export const Login: React.FC = () => {
           </button>
         </form>
 
-        {/* Demo Fast Login Helper */}
+        {/* Superadmin Quick Access */}
         <div className="pt-2">
           <button
             type="button"
@@ -109,7 +109,7 @@ export const Login: React.FC = () => {
             className="w-full py-2.5 px-3 rounded-xl bg-obsidian-900 hover:bg-obsidian-850 text-amber-400 border border-amber-500/30 hover:border-amber-500/50 text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-sm group"
           >
             <ShieldCheck className="w-3.5 h-3.5 text-gold-400 group-hover:scale-110 transition-transform" />
-            <span>Fill Superadmin Demo Credentials (`admin@royalbull.com`)</span>
+            <span>Fill Superadmin Credentials (`admin@royalbull.com`)</span>
           </button>
         </div>
 
