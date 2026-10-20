@@ -10,6 +10,7 @@ import schemas
 import security
 from commission_engine import process_deposit_commissions
 from cycle_engine import run_monthly_cycle
+import accounting
 
 router = APIRouter(prefix="/api/admin", tags=["Admin Console"])
 
@@ -190,7 +191,10 @@ def review_deposit(
 
     wallet.original_principal_cents += deposit.amount_cents
 
-    # 3. Add ledger entry for depositor
+    # 3. Post double-entry journal entry (Operating Cash Asset -> Member Principal Liability)
+    accounting.post_deposit_journal(db=db, deposit=deposit)
+
+    # 4. Add statement ledger entry for depositor
     ledger = models.LedgerEntry(
         id=generate_id("led"),
         user_id=deposit.user_id,
@@ -323,11 +327,14 @@ def review_withdrawal(
         "original_principal_cents"
     ]
     remaining = w.amount_cents
+    bucket_deductions = {}
     for bucket_attr in buckets:
         cur_val = getattr(wallet, bucket_attr)
         deduct = min(cur_val, remaining)
-        setattr(wallet, bucket_attr, cur_val - deduct)
-        remaining -= deduct
+        if deduct > 0:
+            setattr(wallet, bucket_attr, cur_val - deduct)
+            remaining -= deduct
+            bucket_deductions[bucket_attr] = deduct
         if remaining <= 0:
             break
 
@@ -336,7 +343,14 @@ def review_withdrawal(
     w.reviewed_by = admin.id
     w.reviewed_at = now
 
-    # Ledger entry (negative debit)
+    # Post double-entry journal entry (Member Liability Buckets -> Platform Cash Asset)
+    accounting.post_withdrawal_journal(
+        db=db,
+        withdrawal=w,
+        bucket_deductions=bucket_deductions
+    )
+
+    # Legacy statement ledger entry (negative debit)
     ledger = models.LedgerEntry(
         id=generate_id("led"),
         user_id=w.user_id,
@@ -578,3 +592,55 @@ def purge_test_data(
     import seed
     seed.reset_and_seed_production_data(db)
     return {"message": "Database successfully reset to clean production baseline. All test data removed."}
+
+# ----------------- Double-Entry Accounting Audit Endpoints -----------------
+
+@router.get("/accounting/trial-balance")
+def get_accounting_trial_balance(
+    admin: models.User = Depends(security.require_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Returns the general ledger trial balance with account breakdown.
+    Enforces that sum(Debits) == sum(Credits).
+    """
+    return accounting.verify_trial_balance(db)
+
+@router.get("/accounting/reconciliation")
+def get_accounting_reconciliation(
+    admin: models.User = Depends(security.require_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Runs full institutional reconciliation between double-entry subledgers and customer wallets.
+    """
+    return accounting.reconcile_system_wide(db)
+
+@router.post("/accounting/reverse/{entry_id}")
+def reverse_journal_entry_endpoint(
+    entry_id: str,
+    reason: str = Query(..., description="Audit reason for reversing this journal entry"),
+    admin: models.User = Depends(security.require_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Creates a compensating reversal entry. Immutable original entry is preserved and marked 'reversed'.
+    """
+    try:
+        reversal = accounting.reverse_journal_entry(
+            db=db,
+            original_entry_id=entry_id,
+            reason=reason,
+            admin_id=admin.id
+        )
+        db.commit()
+        return {
+            "status": "reversed",
+            "original_entry_id": entry_id,
+            "reversal_entry_id": reversal.id,
+            "message": f"Compensating reversal {reversal.id} posted successfully."
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+

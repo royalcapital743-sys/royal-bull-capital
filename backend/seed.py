@@ -14,9 +14,12 @@ def reset_and_seed_production_data(db: Session):
     - Seeds ONLY the root superadmin account (admin@royalbull.com)
     - Zero fake customer accounts, zero mock transactions
     """
-    Base.metadata.create_all(bind=engine)
+    bind_target = db.get_bind() if hasattr(db, "get_bind") else engine
+    Base.metadata.create_all(bind=bind_target)
 
     # Purge all previous data cleanly
+    db.query(models.JournalLine).delete()
+    db.query(models.JournalEntry).delete()
     db.query(models.Commission).delete()
     db.query(models.LedgerEntry).delete()
     db.query(models.MonthlyCycleEntry).delete()

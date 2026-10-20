@@ -256,3 +256,34 @@ class RefreshToken(Base):
     expires_at = Column(DateTime, nullable=False)
     is_revoked = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class JournalEntry(Base):
+    __tablename__ = "journal_entries"
+
+    id = Column(String(64), primary_key=True, index=True)
+    transaction_type = Column(String(64), nullable=False, index=True)  # 'deposit', 'direct_bonus', 'level_commission', 'roi_credit', 'principal_credit', 'withdrawal', 'reversal'
+    reference_id = Column(String(64), nullable=True, index=True)
+    idempotency_key = Column(String(128), unique=True, nullable=False, index=True)
+    description = Column(Text, nullable=False)
+    status = Column(String(32), default="posted", nullable=False)  # 'posted', 'reversed'
+    posted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    lines = relationship("JournalLine", back_populates="entry", cascade="all, delete-orphan")
+
+
+class JournalLine(Base):
+    __tablename__ = "journal_lines"
+
+    id = Column(String(64), primary_key=True, index=True)
+    journal_entry_id = Column(String(64), ForeignKey("journal_entries.id", ondelete="CASCADE"), nullable=False, index=True)
+    account_code = Column(String(64), nullable=False, index=True)
+    account_name = Column(String(128), nullable=False)
+    user_id = Column(String(64), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    debit_cents = Column(BigInteger, default=0, nullable=False)
+    credit_cents = Column(BigInteger, default=0, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    entry = relationship("JournalEntry", back_populates="lines")
+    user = relationship("User")

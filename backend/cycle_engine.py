@@ -3,6 +3,7 @@ from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
 from sqlalchemy.orm import Session
 import models
+import accounting
 
 def generate_id(prefix: str) -> str:
     return f"{prefix}_{uuid.uuid4().hex[:12]}"
@@ -86,7 +87,18 @@ def run_monthly_cycle(db: Session, admin_id: str | None = None, specific_month: 
         )
         db.add(entry)
 
-        # Ledger entries
+        # Double-entry ledger postings (ROI expense -> ROI payable, Principal expense -> Principal payable)
+        accounting.post_monthly_cycle_journal(
+            db=db,
+            deposit_id=deposit.id,
+            user_id=deposit.user_id,
+            month_key=month_key,
+            roi_cents=roi_cents,
+            principal_cents=principal_cents,
+            cycle_key=cycle_key
+        )
+
+        # Legacy statement ledger entries
         roi_ledger = models.LedgerEntry(
             id=generate_id("led"),
             user_id=deposit.user_id,

@@ -2,6 +2,7 @@ import uuid
 from decimal import Decimal, ROUND_HALF_UP
 from sqlalchemy.orm import Session
 import models
+import accounting
 
 def generate_id(prefix: str) -> str:
     return f"{prefix}_{uuid.uuid4().hex[:12]}"
@@ -85,7 +86,16 @@ def process_deposit_commissions(db: Session, deposit: models.Deposit) -> list[mo
                 db.add(comm)
                 created_commissions.append(comm)
 
-                # Ledger entry
+                # Double-entry ledger posting
+                accounting.post_direct_bonus_journal(
+                    db=db,
+                    deposit_id=deposit.id,
+                    recipient_id=parent.id,
+                    bonus_amount_cents=bonus_amount_cents,
+                    idempotency_key=idempotency_key
+                )
+
+                # Legacy single-entry statement ledger entry
                 ledger = models.LedgerEntry(
                     id=generate_id("led"),
                     user_id=parent.id,
@@ -157,7 +167,17 @@ def process_deposit_commissions(db: Session, deposit: models.Deposit) -> list[mo
                 db.add(comm)
                 created_commissions.append(comm)
 
-                # Ledger entry
+                # Double-entry ledger posting
+                accounting.post_level_commission_journal(
+                    db=db,
+                    deposit_id=deposit.id,
+                    ancestor_id=ancestor.id,
+                    level=level,
+                    comm_amount_cents=comm_amount_cents,
+                    idempotency_key=level_idempotency_key
+                )
+
+                # Legacy single-entry statement ledger entry
                 ledger = models.LedgerEntry(
                     id=generate_id("led"),
                     user_id=ancestor.id,

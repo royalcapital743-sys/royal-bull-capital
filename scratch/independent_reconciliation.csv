@@ -1,0 +1,36 @@
+Account ID,User Name,Starting Balance ($),Eligible Rate,Expected Return ($),Actual Return ($),Expected Commissions ($),Actual Commissions ($),Expected Ending Balance ($),Actual Ending Balance ($),Difference ($),Status
+usr_l1_lead,Leader One,0.00,5% ROI + 5% Prn + 85% Cascade,0.00,0.00,620.00,620.00,620.00,620.00,0.00,PASS
+usr_l1_unq,Unqualified Leader,0.00,5% ROI + 5% Prn + 85% Cascade,0.00,0.00,25.00,25.00,25.00,25.00,0.00,PASS
+usr_q1,Qualifier 1,0.00,5% ROI + 5% Prn + 85% Cascade,50.00,50.00,0.00,0.00,1100.00,1100.00,0.00,PASS
+usr_q2,Qualifier 2,0.00,5% ROI + 5% Prn + 85% Cascade,50.00,50.00,0.00,0.00,1100.00,1100.00,0.00,PASS
+usr_chain_l1,Chain Node L1,0.00,5% ROI + 5% Prn + 85% Cascade,0.00,0.00,450.00,450.00,450.00,450.00,0.00,PASS
+usr_side_1_a,Side 1A,0.00,5% ROI + 5% Prn + 85% Cascade,5.00,5.00,0.00,0.00,110.00,110.00,0.00,PASS
+usr_side_1_b,Side 1B,0.00,5% ROI + 5% Prn + 85% Cascade,5.00,5.00,0.00,0.00,110.00,110.00,0.00,PASS
+usr_chain_l2,Chain Node L2,0.00,5% ROI + 5% Prn + 85% Cascade,0.00,0.00,546.00,546.00,546.00,546.00,0.00,PASS
+usr_side_2_a,Side 2A,0.00,5% ROI + 5% Prn + 85% Cascade,5.00,5.00,0.00,0.00,110.00,110.00,0.00,PASS
+usr_side_2_b,Side 2B,0.00,5% ROI + 5% Prn + 85% Cascade,5.00,5.00,0.00,0.00,110.00,110.00,0.00,PASS
+usr_chain_l3,Chain Node L3,0.00,5% ROI + 5% Prn + 85% Cascade,0.00,0.00,640.00,640.00,640.00,640.00,0.00,PASS
+usr_side_3_a,Side 3A,0.00,5% ROI + 5% Prn + 85% Cascade,5.00,5.00,0.00,0.00,110.00,110.00,0.00,PASS
+usr_side_3_b,Side 3B,0.00,5% ROI + 5% Prn + 85% Cascade,5.00,5.00,0.00,0.00,110.00,110.00,0.00,PASS
+usr_chain_l4,Chain Node L4,0.00,5% ROI + 5% Prn + 85% Cascade,0.00,0.00,732.00,732.00,732.00,732.00,0.00,PASS
+usr_side_4_a,Side 4A,0.00,5% ROI + 5% Prn + 85% Cascade,5.00,5.00,0.00,0.00,110.00,110.00,0.00,PASS
+usr_side_4_b,Side 4B,0.00,5% ROI + 5% Prn + 85% Cascade,5.00,5.00,0.00,0.00,110.00,110.00,0.00,PASS
+usr_chain_l5,Chain Node L5,0.00,5% ROI + 5% Prn + 85% Cascade,0.00,0.00,822.00,822.00,822.00,822.00,0.00,PASS
+usr_side_5_a,Side 5A,0.00,5% ROI + 5% Prn + 85% Cascade,5.00,5.00,0.00,0.00,110.00,110.00,0.00,PASS
+usr_side_5_b,Side 5B,0.00,5% ROI + 5% Prn + 85% Cascade,5.00,5.00,0.00,0.00,110.00,110.00,0.00,PASS
+usr_chain_l6,Chain Node L6,0.00,5% ROI + 5% Prn + 85% Cascade,0.00,0.00,910.00,910.00,910.00,910.00,0.00,PASS
+usr_side_6_a,Side 6A,0.00,5% ROI + 5% Prn + 85% Cascade,5.00,5.00,0.00,0.00,110.00,110.00,0.00,PASS
+usr_side_6_b,Side 6B,0.00,5% ROI + 5% Prn + 85% Cascade,5.00,5.00,0.00,0.00,110.00,110.00,0.00,PASS
+usr_chain_l7,Chain Node L7,0.00,5% ROI + 5% Prn + 85% Cascade,0.00,0.00,1096.00,1096.00,1096.00,1096.00,0.00,PASS
+usr_side_7_a,Side 7A,0.00,5% ROI + 5% Prn + 85% Cascade,5.00,5.00,0.00,0.00,110.00,110.00,0.00,PASS
+usr_side_7_b,Side 7B,0.00,5% ROI + 5% Prn + 85% Cascade,5.00,5.00,0.00,0.00,110.00,110.00,0.00,PASS
+usr_chain_l8,Chain Node L8,0.00,5% ROI + 5% Prn + 85% Cascade,0.00,0.00,1580.00,1580.00,1580.00,1580.00,0.00,PASS
+usr_side_8_a,Side 8A,0.00,5% ROI + 5% Prn + 85% Cascade,5.00,5.00,0.00,0.00,110.00,110.00,0.00,PASS
+usr_side_8_b,Side 8B,0.00,5% ROI + 5% Prn + 85% Cascade,5.00,5.00,0.00,0.00,110.00,110.00,0.00,PASS
+usr_chain_l9,Chain Node L9,0.00,5% ROI + 5% Prn + 85% Cascade,0.00,0.00,2560.00,2560.00,2560.00,2560.00,0.00,PASS
+usr_side_9_a,Side 9A,0.00,5% ROI + 5% Prn + 85% Cascade,5.00,5.00,0.00,0.00,110.00,110.00,0.00,PASS
+usr_side_9_b,Side 9B,0.00,5% ROI + 5% Prn + 85% Cascade,5.00,5.00,0.00,0.00,110.00,110.00,0.00,PASS
+usr_chain_l10,Chain Node L10,0.00,5% ROI + 5% Prn + 85% Cascade,500.00,500.00,30.00,30.00,11030.00,11030.00,0.00,PASS
+usr_side_10_a,Side 10A,0.00,5% ROI + 5% Prn + 85% Cascade,5.00,5.00,0.00,0.00,110.00,110.00,0.00,PASS
+usr_side_10_b,Side 10B,0.00,5% ROI + 5% Prn + 85% Cascade,5.00,5.00,0.00,0.00,110.00,110.00,0.00,PASS
+usr_child_unq,Child of Unqualified,0.00,5% ROI + 5% Prn + 85% Cascade,25.00,25.00,0.00,0.00,550.00,550.00,0.00,PASS

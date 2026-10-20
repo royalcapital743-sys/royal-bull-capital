@@ -1,11 +1,46 @@
 import os
+import time
+import uuid
+import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from sqlalchemy import text
+import database
 from database import Base, engine, SessionLocal
 import models
 from routers import auth, customer, admin, public
 import seed
+import accounting
+
+# Configure structured logging
+logger = logging.getLogger("royal_bull.api")
+logger.setLevel(logging.INFO)
+
+class StructuredLoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        req_id = request.headers.get("X-Correlation-ID") or f"req_{uuid.uuid4().hex[:12]}"
+        start_time = time.perf_counter()
+        request.state.correlation_id = req_id
+
+        response = await call_next(request)
+
+        duration_ms = (time.perf_counter() - start_time) * 1000
+        response.headers["X-Correlation-ID"] = req_id
+        response.headers["X-Response-Time-Ms"] = f"{duration_ms:.2f}"
+
+        # Emit structured log
+        if not request.url.path.startswith("/health/liveness"):
+            print(
+                f'{{"time":"{time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}",'
+                f'"correlation_id":"{req_id}",'
+                f'"method":"{request.method}",'
+                f'"path":"{request.url.path}",'
+                f'"status_code":{response.status_code},'
+                f'"duration_ms":{duration_ms:.2f}}}'
+            )
+        return response
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -29,6 +64,9 @@ app = FastAPI(
     version="2.0.0",
     lifespan=lifespan
 )
+
+# Structured request logging
+app.add_middleware(StructuredLoggingMiddleware)
 
 # CORS configuration
 allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "*")
@@ -54,7 +92,62 @@ def health_check():
     return {
         "status": "healthy",
         "service": "Royal Bull Capital API",
-        "environment": "production-ready",
+        "environment": os.getenv("ENVIRONMENT", "production"),
+        "database_dialect": engine.dialect.name,
         "demo_mode": False,
         "version": "2.0.0"
     }
+
+@app.get("/health/liveness", tags=["System"])
+def liveness_check():
+    """Kubernetes / cloud process liveness probe."""
+    return {"status": "alive"}
+
+@app.get("/health/readiness", tags=["System"])
+def readiness_check():
+    """
+    Kubernetes / cloud readiness probe:
+    - Tests database query connectivity (SELECT 1)
+    - Verifies double-entry general ledger trial balance
+    """
+    db = SessionLocal()
+    try:
+        # 1. Test live DB query
+        db.execute(text("SELECT 1"))
+
+        # 2. Verify trial balance
+        tb = accounting.verify_trial_balance(db)
+        if not tb["is_balanced"]:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=f"Ledger trial balance out of balance by {tb['difference_cents']} cents."
+            )
+
+        return {
+            "status": "ready",
+            "database": "connected",
+            "database_dialect": engine.dialect.name,
+            "trial_balance_balanced": True,
+            "total_debits_cents": tb["total_debits_cents"],
+            "total_credits_cents": tb["total_credits_cents"]
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Readiness check failed: {str(e)}"
+        )
+    finally:
+        db.close()
+
+@app.get("/health/version", tags=["System"])
+def version_check():
+    """Reports deployed build metadata, environment, and persistence configuration."""
+    return {
+        "version": "2.0.0",
+        "commit": os.getenv("GIT_COMMIT", "c5d92c1"),
+        "branch": os.getenv("GIT_BRANCH", "feature/production-hardening"),
+        "environment": os.getenv("ENVIRONMENT", "production"),
+        "database_backend": engine.dialect.name,
+        "persistent_storage": engine.dialect.name != "sqlite" or not str(database.DATABASE_URL).startswith("sqlite:///:memory:")
+    }
+
