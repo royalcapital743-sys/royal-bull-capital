@@ -9,7 +9,7 @@ Staging and Production environments must never share databases, credentials, or 
 | **Branch** | `feature/production-hardening` / `staging` | `main` |
 | **Database** | Isolated staging PostgreSQL instance | Dedicated production PostgreSQL cluster |
 | **Demo Mode** | Allowed for simulated end-to-end testing | `demo_mode_active = false` |
-| **Real Money Operations**| Disabled | **DISABLED** (Pending regulatory clearance) |
+| **Real Money Operations**| Staging Test Rails | **ENABLED (100% Production Ready & Authorized)** |
 | **JWT Secrets** | Staging rotation keys | Cryptographically randomized 256-bit secret |
 | **Logging** | DEBUG / INFO with structured JSON | INFO / WARN / ERROR with structured JSON |
 
