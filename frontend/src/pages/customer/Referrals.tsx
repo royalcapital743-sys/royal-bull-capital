@@ -14,8 +14,126 @@ import {
   Award,
   History,
   TrendingUp,
-  Info
+  Info,
+  ChevronRight,
+  ChevronDown,
+  FolderTree,
+  Table as TableIcon
 } from 'lucide-react';
+import { ReferralNode } from '../../types';
+
+interface TreeNodeRowProps {
+  member: ReferralNode;
+  childrenByParent: Map<string, ReferralNode[]>;
+  expandedIds: Set<string>;
+  toggleExpand: (id: string) => void;
+  depth?: number;
+}
+
+const TreeNodeRow: React.FC<TreeNodeRowProps> = ({
+  member,
+  childrenByParent,
+  expandedIds,
+  toggleExpand,
+  depth = 0,
+}) => {
+  const children = childrenByParent.get(member.id) || [];
+  const hasChildren = children.length > 0;
+  const isExpanded = expandedIds.has(member.id);
+  const directsCount = member.directs_count ?? children.length;
+
+  return (
+    <div className="space-y-2">
+      <div
+        className={`p-3.5 sm:p-4 rounded-2xl border transition-all duration-200 ${
+          isExpanded
+            ? 'bg-amber-500/5 dark:bg-amber-500/10 border-amber-400 dark:border-gold-500/40 shadow-sm'
+            : 'bg-white dark:bg-obsidian-900/60 border-slate-200 dark:border-white/10 hover:border-amber-300 dark:hover:border-gold-500/20'
+        }`}
+      >
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {hasChildren ? (
+              <button
+                type="button"
+                onClick={() => toggleExpand(member.id)}
+                className="w-7 h-7 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-gold-400 flex items-center justify-center transition-colors flex-shrink-0 cursor-pointer"
+                title={isExpanded ? 'Collapse downline' : 'Expand downline'}
+              >
+                {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              </button>
+            ) : (
+              <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 flex-shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-500/10 border border-amber-300 dark:border-gold-500/30 text-amber-700 dark:text-gold-400 font-mono">
+                Level {member.level}
+              </span>
+              <span className="font-bold text-slate-900 dark:text-white text-sm">
+                {member.name}
+              </span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                ({member.referral_code})
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 ml-10 md:ml-0 flex-wrap">
+            {/* Directs count badge */}
+            <span
+              className={`px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 ${
+                directsCount > 0
+                  ? 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-500/20'
+                  : 'bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>{directsCount} Direct {directsCount === 1 ? 'Referee' : 'Referees'} Below</span>
+            </span>
+
+            {/* Funded status */}
+            <span
+              className={`px-2.5 py-1 rounded-xl text-xs font-semibold uppercase ${
+                member.has_funded_deposit
+                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                  : 'bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400'
+              }`}
+            >
+              {member.has_funded_deposit
+                ? `✓ Funded (${formatMoney(member.funded_amount_cents)})`
+                : 'Pending'}
+            </span>
+
+            {member.referrer_name && member.level > 1 && (
+              <span className="text-[11px] text-slate-400 hidden lg:inline">
+                Sponsor: <strong className="text-slate-700 dark:text-slate-300">{member.referrer_name}</strong>
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Recursive downline children */}
+      {isExpanded && hasChildren && (
+        <div className="pl-4 sm:pl-8 border-l-2 border-amber-500/30 dark:border-gold-500/30 ml-3.5 space-y-2 mt-2">
+          {children.map((child) => (
+            <TreeNodeRow
+              key={child.id}
+              member={child}
+              childrenByParent={childrenByParent}
+              expandedIds={expandedIds}
+              toggleExpand={toggleExpand}
+              depth={depth + 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const Referrals: React.FC = () => {
   const { user } = useAuth();
@@ -23,6 +141,47 @@ export const Referrals: React.FC = () => {
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'tree' | 'table'>('tree');
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  // Parent-to-children index
+  const childrenByParent = React.useMemo(() => {
+    const map = new Map<string, ReferralNode[]>();
+    if (!network?.members) return map;
+    network.members.forEach((m) => {
+      const parentKey = m.referrer_id || (m.level === 1 && user?.id ? user.id : 'root');
+      if (!map.has(parentKey)) {
+        map.set(parentKey, []);
+      }
+      map.get(parentKey)!.push(m);
+    });
+    return map;
+  }, [network?.members, user?.id]);
+
+  const toggleExpand = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const expandAll = () => {
+    if (!network) return;
+    setExpandedIds(new Set(network.members.map((m) => m.id)));
+  };
+
+  const collapseAll = () => {
+    setExpandedIds(new Set());
+  };
+
+  const level1Members = React.useMemo(() => {
+    return network?.members.filter((m) => m.level === 1) || [];
+  }, [network?.members]);
 
   useEffect(() => {
     Promise.all([
@@ -53,6 +212,7 @@ export const Referrals: React.FC = () => {
   const totalDirectBonusCents = commissions
     .filter((c) => c.commission_type === 'direct_bonus' && c.status === 'credited')
     .reduce((acc, c) => acc + c.amount_cents, 0);
+
 
   return (
     <CustomerLayout
@@ -320,30 +480,112 @@ export const Referrals: React.FC = () => {
         )}
       </div>
 
-      {/* Downline Members Directory */}
+      {/* Downline Members Directory & Tree Explorer */}
       <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 space-y-6 shadow-xl">
-        <div>
-          <h2 className="text-xl font-display font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Users className="w-5 h-5 text-amber-600 dark:text-gold-400" /> Downline Team Members ({network?.members.length || 0})
-          </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            List of users registered under your sponsor code across all 10 generations.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-display font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Users className="w-5 h-5 text-amber-600 dark:text-gold-400" /> Downline Hierarchy & Team Directory ({network?.members.length || 0})
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Explore your multi-level lineage: see who sponsored whom, expand Level 1 to reveal Level 2 referees, and explore down to Level 10.
+            </p>
+          </div>
+
+          {/* View Mode Toggle & Expand Actions */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center rounded-xl bg-slate-100 dark:bg-white/5 p-1 border border-slate-200 dark:border-white/10">
+              <button
+                type="button"
+                onClick={() => setViewMode('tree')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  viewMode === 'tree'
+                    ? 'bg-amber-500 text-obsidian-950 shadow-sm font-bold'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <FolderTree className="w-3.5 h-3.5" />
+                <span>Tree Hierarchy</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('table')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  viewMode === 'table'
+                    ? 'bg-amber-500 text-obsidian-950 shadow-sm font-bold'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <TableIcon className="w-3.5 h-3.5" />
+                <span>Table View</span>
+              </button>
+            </div>
+
+            {viewMode === 'tree' && network && network.members.length > 0 && (
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={expandAll}
+                  className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10 transition-colors cursor-pointer"
+                >
+                  Expand All
+                </button>
+                <button
+                  type="button"
+                  onClick={collapseAll}
+                  className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10 transition-colors cursor-pointer"
+                >
+                  Collapse All
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {network?.members.length === 0 ? (
           <div className="py-12 text-center text-slate-400 text-xs">
             No downline members registered yet. Share your referral link above to build your team.
           </div>
+        ) : viewMode === 'tree' ? (
+          /* Tree Hierarchy View */
+          <div className="space-y-3">
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-300 dark:border-gold-500/20 text-xs text-amber-800 dark:text-gold-300 flex items-center gap-2">
+              <Info className="w-4 h-4 flex-shrink-0" />
+              <span>
+                <strong>Hierarchy Navigator:</strong> Click on any member with an arrow button to expand and view the referees registered under them. Each row shows how many direct referees they have sponsored below them.
+              </span>
+            </div>
+
+            {level1Members.length === 0 ? (
+              <div className="py-8 text-center text-slate-400 text-xs">
+                No direct Level 1 members yet.
+              </div>
+            ) : (
+              <div className="space-y-2.5 pt-2">
+                {level1Members.map((m) => (
+                  <TreeNodeRow
+                    key={m.id}
+                    member={m}
+                    childrenByParent={childrenByParent}
+                    expandedIds={expandedIds}
+                    toggleExpand={toggleExpand}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         ) : (
+          /* Tabular Directory View */
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">
-                  <th className="py-3 px-3">Level</th>
+                  <th className="py-3 px-3">Generation Tier</th>
                   <th className="py-3 px-3">Member Name</th>
                   <th className="py-3 px-3">Email Address</th>
                   <th className="py-3 px-3">Referral Code</th>
+                  <th className="py-3 px-3">Direct Sponsor</th>
+                  <th className="py-3 px-3 text-center">Referees Below</th>
                   <th className="py-3 px-3">Funded Status</th>
                   <th className="py-3 px-3 text-right">Funded Amount</th>
                   <th className="py-3 px-3">Registered</th>
@@ -360,6 +602,14 @@ export const Referrals: React.FC = () => {
                     <td className="py-3 px-3 font-semibold text-slate-900 dark:text-white font-sans">{m.name}</td>
                     <td className="py-3 px-3 text-slate-600 dark:text-slate-400 font-sans">{m.email}</td>
                     <td className="py-3 px-3 text-amber-700 dark:text-gold-300 font-bold">{m.referral_code}</td>
+                    <td className="py-3 px-3 text-slate-600 dark:text-slate-400 font-sans">
+                      {m.referrer_name || (m.level === 1 ? 'You' : '—')}
+                    </td>
+                    <td className="py-3 px-3 text-center">
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                        {m.directs_count ?? 0}
+                      </span>
+                    </td>
                     <td className="py-3 px-3">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                         m.has_funded_deposit 
@@ -380,6 +630,7 @@ export const Referrals: React.FC = () => {
           </div>
         )}
       </div>
+
     </CustomerLayout>
   );
 };

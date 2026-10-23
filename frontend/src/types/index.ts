@@ -70,7 +70,11 @@ export interface ReferralNode {
   has_funded_deposit: boolean;
   funded_amount_cents: number;
   created_at: string;
+  referrer_id?: string | null;
+  referrer_name?: string | null;
+  directs_count?: number;
 }
+
 
 export interface ReferralLevelSummary {
   level: number;

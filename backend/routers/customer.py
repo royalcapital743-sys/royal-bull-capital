@@ -113,6 +113,13 @@ def get_referral_network(
             models.User.status == "active"
         ).all()
 
+        parent_map = {}
+        if level == 1:
+            parent_map = {current_user.id: current_user.name}
+        elif current_parents:
+            parents = db.query(models.User).filter(models.User.id.in_(current_parents)).all()
+            parent_map = {p.id: p.name for p in parents}
+
         funded_count = 0
         for u in level_users:
             dep_sum = db.query(models.Deposit).filter(
@@ -128,6 +135,11 @@ def get_referral_network(
             if has_funded:
                 funded_count += 1
 
+            u_directs_count = db.query(models.User).filter(
+                models.User.referrer_id == u.id,
+                models.User.status == "active"
+            ).count()
+
             members.append(schemas.ReferralNode(
                 id=u.id,
                 name=u.name,
@@ -137,8 +149,12 @@ def get_referral_network(
                 status=u.status,
                 has_funded_deposit=has_funded,
                 funded_amount_cents=funded_amt,
-                created_at=u.created_at
+                created_at=u.created_at,
+                referrer_id=u.referrer_id,
+                referrer_name=parent_map.get(u.referrer_id),
+                directs_count=u_directs_count
             ))
+
 
         # Query commissions earned for this user from this level
         comm_cents = db.query(models.Commission).filter(

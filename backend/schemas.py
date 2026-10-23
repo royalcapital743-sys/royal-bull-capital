@@ -107,6 +107,10 @@ class ReferralNode(BaseModel):
     has_funded_deposit: bool
     funded_amount_cents: int
     created_at: datetime
+    referrer_id: Optional[str] = None
+    referrer_name: Optional[str] = None
+    directs_count: int = 0
+
 
 class ReferralLevelSummary(BaseModel):
     level: int
