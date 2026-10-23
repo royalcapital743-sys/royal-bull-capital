@@ -63,11 +63,11 @@ export const Contact: React.FC = () => {
             <div className="p-3 w-12 h-12 rounded-xl bg-gold-500/10 text-gold-400 flex items-center justify-center">
               <MapPin className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-white">Global Headquarters</h3>
+            <h3 className="text-base font-bold text-white">Executive Headquarters</h3>
             <p className="text-xs text-slate-400">
-              Royal Bull Capital Technology Center<br />
-              Financial District, Level 38<br />
-              Enterprise FinTech Corridor
+              Royal Bull Capital Executive Suite<br />
+              DIFC / Financial District, Level 38<br />
+              Dubai, United Arab Emirates
             </p>
           </div>
         </div>

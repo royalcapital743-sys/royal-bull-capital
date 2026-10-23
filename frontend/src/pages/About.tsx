@@ -15,7 +15,10 @@ import {
   CheckCircle,
   BarChart2,
   Layers,
-  Scale
+  Scale,
+  MapPin,
+  Building2,
+  UserCheck
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -187,7 +190,100 @@ export const About: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. Technology & Security Infrastructure (Adapted from Finway PPT Page 16) */}
+      {/* 4. Executive Leadership & Strategy (Dubai Hub) */}
+      <div className="space-y-12">
+        <div className="text-center max-w-2xl mx-auto space-y-3">
+          <span className="text-amber-700 dark:text-gold-400 text-xs uppercase font-bold tracking-widest font-mono">
+            EXECUTIVE GOVERNANCE
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-display font-bold text-slate-900 dark:text-white">
+            Executive Leadership & Strategy
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400 text-sm">
+            Spearheaded from our executive hub in Dubai, driving institutional algorithmic trading, quantitative engineering, and transparent affiliate governance.
+          </p>
+        </div>
+
+        <div className="glass-panel p-8 sm:p-10 rounded-3xl border border-amber-300/80 dark:border-gold-500/20 relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-amber-50/30 dark:from-obsidian-900 dark:via-obsidian-850 dark:to-amber-950/20 shadow-xl">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            
+            {/* CEO Profile Left Badge */}
+            <div className="lg:col-span-4 flex flex-col items-center lg:items-start text-center lg:text-left space-y-4">
+              <div className="relative">
+                <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-gradient-to-tr from-amber-500/20 via-amber-400/30 to-amber-600/10 border-2 border-amber-400 dark:border-gold-500/50 flex items-center justify-center p-2 shadow-gold-glow">
+                  <div className="w-full h-full rounded-2xl bg-slate-900 flex items-center justify-center text-amber-500 dark:text-gold-400">
+                    <UserCheck className="w-14 h-14" />
+                  </div>
+                </div>
+                <div className="absolute -bottom-2 -right-2 px-2.5 py-1 rounded-full bg-amber-500 text-obsidian-950 text-[10px] font-black uppercase tracking-wider shadow-sm">
+                  CEO
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <h3 className="text-xl sm:text-2xl font-display font-bold text-slate-900 dark:text-white">
+                  Chief Executive Officer
+                </h3>
+                <p className="text-xs text-amber-700 dark:text-gold-400 font-mono font-semibold uppercase tracking-wider">
+                  Founder & Principal Executive
+                </p>
+              </div>
+
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-300 dark:border-gold-500/30 text-xs font-semibold text-amber-800 dark:text-gold-400">
+                <MapPin className="w-3.5 h-3.5 text-amber-600 dark:text-gold-400" />
+                <span>Executive Office · Dubai, UAE</span>
+              </div>
+            </div>
+
+            {/* Leadership Statement & Highlights */}
+            <div className="lg:col-span-8 space-y-6">
+              <div className="relative pl-6 border-l-2 border-amber-400 dark:border-gold-500/40 space-y-3">
+                <p className="text-slate-700 dark:text-slate-200 text-sm sm:text-base italic leading-relaxed">
+                  "Our mandate at Royal Bull Capital is to bridge the gap between high-frequency quantitative execution and community empowerment. Operating from Dubai—the global epicenter of financial technology and digital innovation—we enforce disciplined risk parameters, verifiable algorithmic automation, and a transparent double-entry financial ledger for every market participant."
+                </p>
+                <p className="text-xs font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400 font-bold">
+                  — Office of the CEO, Royal Bull Capital (Dubai, UAE)
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                <div className="p-4 rounded-2xl bg-white/60 dark:bg-obsidian-900/80 border border-slate-200 dark:border-white/5 space-y-1.5">
+                  <div className="flex items-center gap-2 text-amber-700 dark:text-gold-400 text-xs font-bold">
+                    <Building2 className="w-4 h-4" />
+                    <span>Dubai Hub</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
+                    Strategic leadership and international partnership coordination centered in Dubai, UAE.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-white/60 dark:bg-obsidian-900/80 border border-slate-200 dark:border-white/5 space-y-1.5">
+                  <div className="flex items-center gap-2 text-amber-700 dark:text-gold-400 text-xs font-bold">
+                    <Scale className="w-4 h-4" />
+                    <span>Risk Governance</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
+                    Strict volatility thresholds, automated drawdown protection, and zero discretionary bias.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-white/60 dark:bg-obsidian-900/80 border border-slate-200 dark:border-white/5 space-y-1.5">
+                  <div className="flex items-center gap-2 text-amber-700 dark:text-gold-400 text-xs font-bold">
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>Auditable Ledger</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
+                    Immutable double-entry book-keeping with segregated wallets and transparent payouts.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      {/* 5. Technology & Security Infrastructure (Adapted from Finway PPT Page 16) */}
       <div className="space-y-10">
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <span className="text-amber-700 dark:text-gold-400 text-xs uppercase font-bold tracking-widest font-mono">
