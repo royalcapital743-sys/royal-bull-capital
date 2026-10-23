@@ -9,6 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.dirname(__file__))
 
 from database import Base, get_db
 import models
@@ -31,16 +32,16 @@ def override_sim_get_db():
     finally:
         db.close()
 
-app.dependency_overrides[get_db] = override_sim_get_db
-
 @pytest.fixture(scope="module")
 def sim_db():
+    app.dependency_overrides[get_db] = override_sim_get_db
     Base.metadata.drop_all(bind=sim_engine)
     Base.metadata.create_all(bind=sim_engine)
     db = SimSessionLocal()
     seed.reset_and_seed_production_data(db)
     yield db
     db.close()
+    app.dependency_overrides.pop(get_db, None)
     sim_engine.dispose()
     try:
         if os.path.exists("test_sim_royal_bull.db"):

@@ -94,6 +94,7 @@ class CommissionResponse(BaseModel):
     base_cents: int
     amount_cents: int
     status: str
+    month_key: Optional[str] = None
     created_at: datetime
 
 class ReferralNode(BaseModel):
@@ -113,6 +114,9 @@ class ReferralLevelSummary(BaseModel):
     members_count: int
     funded_members_count: int
     total_commissions_cents: int
+    required_directs: int = 0
+    your_directs: int = 0
+    is_level_qualified: bool = False
 
 class ReferralNetworkResponse(BaseModel):
     referral_code: str

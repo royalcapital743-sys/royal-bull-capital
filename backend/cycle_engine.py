@@ -4,15 +4,17 @@ from decimal import Decimal, ROUND_HALF_UP
 from sqlalchemy.orm import Session
 import models
 import accounting
+import commission_engine
 
 def generate_id(prefix: str) -> str:
     return f"{prefix}_{uuid.uuid4().hex[:12]}"
 
 def run_monthly_cycle(db: Session, admin_id: str | None = None, specific_month: str | None = None) -> models.MonthlyCycleRun:
     """
-    Executes the monthly simulated allocation:
+    Executes the monthly simulated allocation & referral commissions:
     - 5% monthly ROI simulation credited to roi_balance
     - 5% additional principal credit credited to principal_credits
+    - 10-level referral commissions calculated strictly from downline monthly ROI (roi_cents)
     Ensures strict idempotency: each deposit can only receive one cycle allocation per calendar month.
     """
     now = datetime.utcnow()
@@ -38,6 +40,7 @@ def run_monthly_cycle(db: Session, admin_id: str | None = None, specific_month: 
             total_eligible_deposits=0,
             total_roi_cents=0,
             total_principal_cents=0,
+            total_commissions_cents=0,
             status="completed",
             executed_at=now
         )
@@ -49,6 +52,7 @@ def run_monthly_cycle(db: Session, admin_id: str | None = None, specific_month: 
     processed_count = 0
     cycle_total_roi = 0
     cycle_total_principal = 0
+    cycle_total_commissions = 0
 
     for deposit in confirmed_deposits:
         cycle_key = f"{deposit.id}_{month_key}"
@@ -64,7 +68,7 @@ def run_monthly_cycle(db: Session, admin_id: str | None = None, specific_month: 
         roi_cents = int((deposit_amt * roi_rate / Decimal(100)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
         principal_cents = int((deposit_amt * principal_rate / Decimal(100)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
-        # Update wallet
+        # Update depositor wallet
         wallet = db.query(models.Wallet).filter(models.Wallet.user_id == deposit.user_id).first()
         if not wallet:
             wallet = models.Wallet(user_id=deposit.user_id)
@@ -98,7 +102,7 @@ def run_monthly_cycle(db: Session, admin_id: str | None = None, specific_month: 
             cycle_key=cycle_key
         )
 
-        # Legacy statement ledger entries
+        # Statement ledger entries
         roi_ledger = models.LedgerEntry(
             id=generate_id("led"),
             user_id=deposit.user_id,
@@ -133,6 +137,19 @@ def run_monthly_cycle(db: Session, admin_id: str | None = None, specific_month: 
         )
         db.add(notif)
 
+        # Process Monthly ROI-Based 10-Level Referral Commissions
+        depositor = db.query(models.User).filter(models.User.id == deposit.user_id).first()
+        if depositor and roi_cents > 0:
+            roi_commissions = commission_engine.process_monthly_roi_commissions(
+                db=db,
+                deposit=deposit,
+                downline_user=depositor,
+                roi_cents=roi_cents,
+                month_key=month_key,
+                cycle_entry_id=entry.id
+            )
+            cycle_total_commissions += sum(c.amount_cents for c in roi_commissions)
+
         processed_count += 1
         cycle_total_roi += roi_cents
         cycle_total_principal += principal_cents
@@ -140,6 +157,7 @@ def run_monthly_cycle(db: Session, admin_id: str | None = None, specific_month: 
     run.total_eligible_deposits += processed_count
     run.total_roi_cents += cycle_total_roi
     run.total_principal_cents += cycle_total_principal
+    run.total_commissions_cents += cycle_total_commissions
     rules.last_monthly_run = now
 
     audit = models.AuditLog(
@@ -148,7 +166,7 @@ def run_monthly_cycle(db: Session, admin_id: str | None = None, specific_month: 
         action="MONTHLY_CYCLE_EXECUTED",
         entity_type="monthly_cycle_runs",
         entity_id=run.id,
-        detail=f"Month {month_key}: processed {processed_count} deposits. Total ROI: ${cycle_total_roi/100:.2f}, Principal: ${cycle_total_principal/100:.2f}."
+        detail=f"Month {month_key}: processed {processed_count} deposits. Total ROI: ${cycle_total_roi/100:.2f}, Principal: ${cycle_total_principal/100:.2f}, Commissions: ${cycle_total_commissions/100:.2f}."
     )
     db.add(audit)
     db.commit()

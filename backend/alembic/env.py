@@ -19,8 +19,9 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Set dynamic database URL from database module only if not already provided
-if not config.get_main_option("sqlalchemy.url"):
+# Set dynamic database URL from database module if not provided or placeholder
+current_url = config.get_main_option("sqlalchemy.url")
+if not current_url or "driver://user:pass" in current_url:
     config.set_main_option("sqlalchemy.url", str(database.DATABASE_URL))
 
 target_metadata = database.Base.metadata

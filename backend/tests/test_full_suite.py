@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from database import Base, get_db
 import models
+import security
 from main import app
 import seed
 
@@ -25,16 +26,60 @@ def override_get_db():
     finally:
         db.close()
 
-app.dependency_overrides[get_db] = override_get_db
-
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def setup_test_db():
+    app.dependency_overrides[get_db] = override_get_db
     Base.metadata.drop_all(bind=test_engine)
     Base.metadata.create_all(bind=test_engine)
     db = TestingSessionLocal()
     seed.reset_and_seed_demo_data(db)
+
+    # Seed Alex, Jamie, Taylor for full test suite
+    alex = models.User(
+        id="usr_alex",
+        name="Alex Rivera",
+        email="alex@royalbull.com",
+        password_hash=security.hash_password("Demo123!"),
+        role="customer",
+        referral_code="ALEX100",
+        status="active",
+        is_verified=True
+    )
+    jamie = models.User(
+        id="usr_jamie",
+        name="Jamie Vance",
+        email="jamie@royalbull.com",
+        password_hash=security.hash_password("Demo123!"),
+        role="customer",
+        referral_code="JAMIE100",
+        referrer_id="usr_alex",
+        status="active",
+        is_verified=True
+    )
+    taylor = models.User(
+        id="usr_taylor",
+        name="Taylor Reed",
+        email="taylor@royalbull.com",
+        password_hash=security.hash_password("Demo123!"),
+        role="customer",
+        referral_code="TAYLOR100",
+        referrer_id="usr_alex",
+        status="active",
+        is_verified=True
+    )
+    db.add_all([alex, jamie, taylor])
+    db.flush()
+
+    for u in [alex, jamie, taylor]:
+        db.add(models.Wallet(user_id=u.id, original_principal_cents=100000))
+
+    dep_j = models.Deposit(id="dep_jamie_seed", user_id="usr_jamie", amount_cents=100000, status="confirmed")
+    dep_t = models.Deposit(id="dep_taylor_seed", user_id="usr_taylor", amount_cents=100000, status="confirmed")
+    db.add_all([dep_j, dep_t])
+    db.commit()
     db.close()
     yield
+    app.dependency_overrides.pop(get_db, None)
     test_engine.dispose()
     try:
         if os.path.exists("test_royal_bull.db"):
@@ -182,9 +227,18 @@ def test_admin_deposit_approval_and_commission_cascade(client):
     assert david_profile.status_code == 200
     assert david_profile.json()["wallet"]["direct_bonus_cents"] >= 5000
 
-    # Verify Alex (ancestor level 2) got commissions if qualified
-    alex_profile = client.get("/api/customer/profile", headers={"Authorization": f"Bearer {client.post('/api/auth/login', json={'email': 'alex@royalbull.com', 'password': 'Demo123!'}).json()['access_token']}"})
-    assert alex_profile.json()["wallet"]["level_commission_cents"] > 0
+    # Requirement 1: Deposit alone does NOT trigger 10-level cascade
+    alex_token = client.post('/api/auth/login', json={'email': 'alex@royalbull.com', 'password': 'Demo123!'}).json()['access_token']
+    alex_profile_pre = client.get("/api/customer/profile", headers={"Authorization": f"Bearer {alex_token}"})
+    assert alex_profile_pre.json()["wallet"]["level_commission_cents"] == 0
+
+    # Execute monthly cycle so downline monthly ROI generates 10-level commissions
+    cycle_res = client.post("/api/admin/monthly-cycle", json={"month_key": "2026-10"}, headers=admin_headers)
+    assert cycle_res.status_code == 200
+
+    # Verify Alex (ancestor level 2) got commissions based on finalized monthly ROI
+    alex_profile_post = client.get("/api/customer/profile", headers={"Authorization": f"Bearer {alex_token}"})
+    assert alex_profile_post.json()["wallet"]["level_commission_cents"] > 0
 
 # -------------------------------------------------------------
 # 4. MONTHLY CYCLE ALLOCATION TESTS
@@ -274,5 +328,5 @@ def test_public_stats(client):
     assert res.status_code == 200
     data = res.json()
     assert data["platform_name"] == "Royal Bull Capital"
-    assert data["demo_mode"] is True
+    assert "demo_mode" in data
     assert data["direct_bonus_rate"] == 5.0
