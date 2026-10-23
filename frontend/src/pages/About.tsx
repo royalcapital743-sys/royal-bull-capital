@@ -222,10 +222,10 @@ export const About: React.FC = () => {
 
               <div className="space-y-1">
                 <h3 className="text-xl sm:text-2xl font-display font-bold text-slate-900 dark:text-white">
-                  Chief Executive Officer
+                  Tariq Al-Mansoor
                 </h3>
                 <p className="text-xs text-amber-700 dark:text-gold-400 font-mono font-semibold uppercase tracking-wider">
-                  Founder & Principal Executive
+                  Founder & Chief Executive Officer
                 </p>
               </div>
 
@@ -242,7 +242,7 @@ export const About: React.FC = () => {
                   "Our mandate at Royal Bull Capital is to bridge the gap between high-frequency quantitative execution and community empowerment. Operating from Dubai—the global epicenter of financial technology and digital innovation—we enforce disciplined risk parameters, verifiable algorithmic automation, and a transparent double-entry financial ledger for every market participant."
                 </p>
                 <p className="text-xs font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400 font-bold">
-                  — Office of the CEO, Royal Bull Capital (Dubai, UAE)
+                  — Tariq Al-Mansoor, Founder & CEO (Dubai, UAE)
                 </p>
               </div>
 
