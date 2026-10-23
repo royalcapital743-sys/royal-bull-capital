@@ -8,7 +8,7 @@ from database import get_db
 import models
 import schemas
 import security
-from commission_engine import process_deposit_commissions
+from commission_engine import process_deposit_commissions, process_deposit_direct_bonus
 from cycle_engine import run_monthly_cycle
 import accounting
 
@@ -217,8 +217,9 @@ def review_deposit(
     )
     db.add(notif)
 
-    # 5. Process Multi-tier Referral Commissions (Direct 5% + 10 Levels)
-    comms = process_deposit_commissions(db, deposit)
+    # 5. Process Isolated Direct Sponsor Bonus (5%) — Deposits DO NOT trigger 10-level commissions!
+    direct_comm = process_deposit_direct_bonus(db, deposit)
+    comms = [direct_comm] if direct_comm else []
 
     # 6. Audit log
     audit = models.AuditLog(
@@ -227,7 +228,7 @@ def review_deposit(
         action="DEPOSIT_CONFIRMED",
         entity_type="deposits",
         entity_id=deposit.id,
-        detail=f"Approved ${deposit.amount_cents/100:.2f} USD. Generated {len(comms)} commission allocations."
+        detail=f"Approved ${deposit.amount_cents/100:.2f} USD. Direct sponsor bonus: {'credited' if direct_comm else 'none'}. 10-level referral commissions are calculated on monthly ROI."
     )
     db.add(audit)
 
@@ -235,7 +236,7 @@ def review_deposit(
     return {
         "status": "confirmed",
         "commissions_count": len(comms),
-        "message": f"Deposit confirmed successfully. Distributed {len(comms)} commissions across referral tree."
+        "message": f"Deposit confirmed successfully. Direct bonus {'credited' if direct_comm else 'not applicable'}. 10-level referral commissions generate upon monthly ROI cycle."
     }
 
 @router.get("/withdrawals")
@@ -398,6 +399,7 @@ def execute_monthly_cycle(
         "total_eligible_deposits": cycle_run.total_eligible_deposits,
         "total_roi_usd": cycle_run.total_roi_cents / 100.0,
         "total_principal_usd": cycle_run.total_principal_cents / 100.0,
+        "total_commissions_usd": getattr(cycle_run, "total_commissions_cents", 0) / 100.0,
         "status": cycle_run.status,
         "message": f"Successfully simulated monthly cycle for {cycle_run.month_key}."
     }
@@ -415,6 +417,7 @@ def list_monthly_cycles(
             "total_eligible_deposits": r.total_eligible_deposits,
             "total_roi_usd": r.total_roi_cents / 100.0,
             "total_principal_usd": r.total_principal_cents / 100.0,
+            "total_commissions_usd": getattr(r, "total_commissions_cents", 0) / 100.0,
             "status": r.status,
             "executed_at": r.executed_at
         }

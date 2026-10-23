@@ -24,11 +24,12 @@ class RefCommission:
     source_user_id: str
     recipient_user_id: str
     level: int
-    commission_type: str  # 'direct_bonus' or 'level_commission'
+    commission_type: str  # 'direct_bonus' or 'roi_level_commission'
     rate_percent: Decimal
     base_cents: int
     amount_cents: int
     idempotency_key: str
+    month_key: Optional[str] = None
 
 @dataclass
 class RefMonthReturn:
@@ -64,9 +65,10 @@ class IndependentReferenceCalculator:
     Independent Reference Calculation Engine (Oracle).
     This engine does NOT import or call production calculation code.
     It executes calculations according to approved business rules:
-      - Direct referral bonus: 5% (Level 0) to immediate active parent.
-      - Multi-tier levels 1 to 10: [20%, 15%, 10%, 8%, 7%, 6%, 5%, 4%, 3%, 2%].
-      - Qualification requirement: Ancestor must have >= 2 active funded direct referrals.
+      - Direct referral bonus: 5% (Level 0) to immediate active parent upon deposit.
+      - 10-level referral commissions are calculated from eligible downline Monthly ROI.
+      - Multi-tier levels 1 to 10 rates: [20%, 15%, 10%, 8%, 7%, 6%, 5%, 4%, 3%, 2%].
+      - Option A Incremental Direct Qualification: Ancestor at Level L must have >= L active funded directs.
       - Monthly ROI simulation: 5% per confirmed deposit per calendar month.
       - Monthly Principal simulation: 5% per confirmed deposit per calendar month.
       - Rounding rule: ROUND_HALF_UP to nearest whole cent.
@@ -102,19 +104,32 @@ class IndependentReferenceCalculator:
         self.wallets[user_id] = RefWallet(user_id=user_id)
         return u
 
-    def is_user_qualified(self, user_id: str) -> bool:
+    def get_funded_directs_count(self, user_id: str, min_deposit_cents: int = 10000) -> int:
         """
-        Qualification check: Count of active direct referrals who have >= 1 confirmed deposit.
+        Count of distinct active direct referrals who have >= 1 confirmed deposit meeting minimum threshold.
         """
         directs = [u for u in self.users.values() if u.referrer_id == user_id and u.status == "active"]
         funded_count = 0
         for d in directs:
-            has_dep = any(dep.user_id == d.id and dep.status == "confirmed" for dep in self.deposits.values())
+            has_dep = any(dep.user_id == d.id and dep.status == "confirmed" and dep.amount_cents >= min_deposit_cents for dep in self.deposits.values())
             if has_dep:
                 funded_count += 1
-        return funded_count >= 2
+        return funded_count
+
+    def is_user_qualified(self, user_id: str, level: int = 1) -> bool:
+        """
+        Option A qualification check: Ancestor must have >= level active funded directs.
+        """
+        funded_count = self.get_funded_directs_count(user_id)
+        return funded_count >= level
 
     def process_deposit(self, deposit_id: str, user_id: str, amount_cents: int, status: str = "confirmed", confirmed_month: Optional[str] = None) -> List[RefCommission]:
+        """
+        Processes deposit confirmation:
+        - Credits depositor principal
+        - Credits isolated 5% Direct Sponsor Bonus (Level 0) to immediate sponsor
+        - Does NOT trigger 10-level cascade (which is processed on monthly ROI)
+        """
         dep = RefDeposit(id=deposit_id, user_id=user_id, amount_cents=amount_cents, status=status, confirmed_month=confirmed_month)
         self.deposits[deposit_id] = dep
 
@@ -130,7 +145,7 @@ class IndependentReferenceCalculator:
         if not depositor or not depositor.referrer_id:
             return created
 
-        # 1. Direct Bonus (Level 0) to immediate active parent
+        # Direct Sponsor Bonus (Level 0) to immediate active parent
         parent = self.users.get(depositor.referrer_id)
         if parent and parent.status == "active":
             bonus_cents = int((Decimal(amount_cents) * self.direct_bonus_rate / Decimal(100)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
@@ -147,55 +162,19 @@ class IndependentReferenceCalculator:
                     rate_percent=self.direct_bonus_rate,
                     base_cents=amount_cents,
                     amount_cents=bonus_cents,
-                    idempotency_key=idem_key
+                    idempotency_key=idem_key,
+                    month_key=None
                 )
                 self.commissions.append(comm)
                 created.append(comm)
-
-        # 2. Multi-tier Ancestor Cascade (Levels 1 to 10)
-        curr_ancestor_id = depositor.referrer_id
-        level = 1
-        visited = set()
-
-        while curr_ancestor_id and level <= 10:
-            if curr_ancestor_id in visited:
-                break
-            visited.add(curr_ancestor_id)
-
-            ancestor = self.users.get(curr_ancestor_id)
-            if not ancestor:
-                break
-
-            # Must be active and meet qualification (>= 2 active funded directs)
-            if ancestor.status == "active" and self.is_user_qualified(ancestor.id):
-                rate = self.level_rates[level - 1]
-                comm_cents = int((Decimal(amount_cents) * rate / Decimal(100)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
-                lvl_key = f"dep_{deposit_id}_lvl{level}_{ancestor.id}"
-                if lvl_key not in self.commission_keys and comm_cents > 0:
-                    self.commission_keys.add(lvl_key)
-                    self.wallets[ancestor.id].level_commission_cents += comm_cents
-                    comm = RefCommission(
-                        deposit_id=deposit_id,
-                        source_user_id=depositor.id,
-                        recipient_user_id=ancestor.id,
-                        level=level,
-                        commission_type="level_commission",
-                        rate_percent=rate,
-                        base_cents=amount_cents,
-                        amount_cents=comm_cents,
-                        idempotency_key=lvl_key
-                    )
-                    self.commissions.append(comm)
-                    created.append(comm)
-
-            curr_ancestor_id = ancestor.referrer_id
-            level += 1
 
         return created
 
     def process_monthly_cycle(self, month_key: str) -> List[RefMonthReturn]:
         """
-        Executes reference monthly performance allocation for confirmed deposits in month_key.
+        Executes reference monthly performance allocation:
+        1. 5% ROI and 5% Principal Credit per confirmed deposit
+        2. 10-Level Referral Commission Cascade calculated from each downline's finalized ROI
         Strict idempotency: 1 cycle allocation per deposit per calendar month.
         """
         created: List[RefMonthReturn] = []
@@ -205,7 +184,6 @@ class IndependentReferenceCalculator:
 
             cycle_key = f"{dep.id}_{month_key}"
             if cycle_key in self.cycle_keys:
-                # Already processed for this month
                 continue
 
             self.cycle_keys.add(cycle_key)
@@ -227,6 +205,48 @@ class IndependentReferenceCalculator:
             )
             self.month_returns.append(entry)
             created.append(entry)
+
+            # Process 10-Level ROI Referral Commissions from this deposit's monthly ROI
+            depositor = self.users.get(dep.user_id)
+            if depositor and depositor.referrer_id and roi_cents > 0:
+                curr_ancestor_id = depositor.referrer_id
+                level = 1
+                visited = set()
+
+                while curr_ancestor_id and level <= 10:
+                    if curr_ancestor_id in visited:
+                        break
+                    visited.add(curr_ancestor_id)
+
+                    ancestor = self.users.get(curr_ancestor_id)
+                    if not ancestor:
+                        break
+
+                    # Option A qualification: Level L requires >= L funded directs
+                    if ancestor.status == "active" and self.is_user_qualified(ancestor.id, level=level):
+                        rate = self.level_rates[level - 1]
+                        comm_cents = int((Decimal(roi_cents) * rate / Decimal(100)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+                        lvl_key = f"roi_comm_{month_key}_{dep.id}_{ancestor.id}_lvl{level}"
+                        if lvl_key not in self.commission_keys and comm_cents > 0:
+                            self.commission_keys.add(lvl_key)
+                            self.wallets[ancestor.id].level_commission_cents += comm_cents
+                            comm = RefCommission(
+                                deposit_id=dep.id,
+                                source_user_id=depositor.id,
+                                recipient_user_id=ancestor.id,
+                                level=level,
+                                commission_type="roi_level_commission",
+                                rate_percent=rate,
+                                base_cents=roi_cents,
+                                amount_cents=comm_cents,
+                                idempotency_key=lvl_key,
+                                month_key=month_key
+                            )
+                            self.commissions.append(comm)
+
+                    # Non-compression: advance to next ancestor at next level
+                    curr_ancestor_id = ancestor.referrer_id
+                    level += 1
 
         return created
 

@@ -51,11 +51,12 @@ export interface Commission {
   source_user_name?: string;
   recipient_user_id: string;
   level: number;
-  commission_type: 'direct_bonus' | 'level_commission';
+  commission_type: 'direct_bonus' | 'level_commission' | 'roi_level_commission';
   rate_percent: number;
   base_cents: number;
   amount_cents: number;
   status: 'credited' | 'reversed';
+  month_key?: string | null;
   created_at: string;
 }
 
@@ -77,6 +78,9 @@ export interface ReferralLevelSummary {
   members_count: number;
   funded_members_count: number;
   total_commissions_cents: number;
+  required_directs: number;
+  your_directs: number;
+  is_level_qualified: boolean;
 }
 
 export interface ReferralNetworkResponse {
@@ -172,6 +176,7 @@ export interface MonthlyCycleRun {
   total_eligible_deposits: number;
   total_roi_usd: number;
   total_principal_usd: number;
+  total_commissions_usd?: number;
   status: string;
   executed_at: string;
 }

@@ -37,7 +37,7 @@ export const AdminDeposits: React.FC = () => {
 
   const handleReview = async (depositId: string, success: boolean) => {
     const promptText = success 
-      ? 'Confirm this USD deposit? This will credit the user wallet and immediately trigger the 10-tier referral commission cascade.' 
+      ? 'Confirm this USD deposit? This will credit the user wallet and 5% direct sponsor bonus. 10-tier referral commissions are calculated on monthly ROI cycles.' 
       : 'Reject this deposit as failed?';
     if (!window.confirm(promptText)) return;
 
@@ -122,14 +122,14 @@ export const AdminDeposits: React.FC = () => {
   return (
     <AdminLayout
       title="Deposit Review & Commission Desk"
-      subtitle="Verify client deposit receipts. Confirming a deposit immediately executes the multi-tier commission engine."
+      subtitle="Verify client deposit receipts. Confirming a deposit credits principal and 5% direct sponsor bonus."
       actions={headerActions}
     >
       {/* Notice Card */}
       <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs flex items-center gap-3">
         <Info className="w-4 h-4 shrink-0 text-blue-400" />
         <span>
-          <strong>Automated Engine:</strong> When you confirm a deposit, the system atomically updates the investor's balance, checks sponsor qualifications, and distributes 5% direct bonus and up to 10-tier commissions.
+          <strong>Automated Engine:</strong> When you confirm a deposit, the system atomically updates the investor's balance and credits the 5% direct sponsor bonus. The 10-tier referral commissions are calculated separately during the monthly cycle based on finalized downline ROI.
         </span>
       </div>
 

@@ -98,10 +98,13 @@ def get_referral_network(
         if not current_parents:
             level_summaries.append({
                 "level": level,
-                "rate_percent": rates[level - 1] if level - 1 < len(rates) else 0.0,
+                "rate_percent": float(rates[level - 1]) if level - 1 < len(rates) else 0.0,
                 "members_count": 0,
                 "funded_members_count": 0,
-                "total_commissions_cents": 0
+                "total_commissions_cents": 0,
+                "required_directs": level,
+                "your_directs": qualified_direct_count,
+                "is_level_qualified": (qualified_direct_count >= level)
             })
             continue
 
@@ -147,10 +150,13 @@ def get_referral_network(
 
         level_summaries.append({
             "level": level,
-            "rate_percent": rates[level - 1] if level - 1 < len(rates) else 0.0,
+            "rate_percent": float(rates[level - 1]) if level - 1 < len(rates) else 0.0,
             "members_count": len(level_users),
             "funded_members_count": funded_count,
-            "total_commissions_cents": total_comm
+            "total_commissions_cents": total_comm,
+            "required_directs": level,
+            "your_directs": qualified_direct_count,
+            "is_level_qualified": (qualified_direct_count >= level)
         })
 
         current_parents = [u.id for u in level_users]
@@ -447,6 +453,7 @@ def get_customer_commissions(
             "base_cents": c.base_cents,
             "amount_cents": c.amount_cents,
             "status": c.status,
+            "month_key": c.month_key,
             "created_at": c.created_at
         })
     return res

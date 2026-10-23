@@ -39,12 +39,12 @@ const FAQ_DATA: FaqItem[] = [
   {
     cat: '10-Tier Referral Program',
     q: 'What is the breakdown of the 10-tier commission cascade?',
-    a: 'The 10-tier commission hierarchy allocates 80.00% across downline depth: Tier 1: 20%, Tier 2: 15%, Tier 3: 10%, Tier 4: 8%, Tier 5: 7%, Tier 6: 6%, Tier 7: 5%, Tier 8: 4%, Tier 9: 3%, Tier 10: 2%. In addition, an immediate 5.00% Direct Sponsor Bonus is credited on every directly introduced deposit, bringing the total distribution pool to 85.00%.'
+    a: 'The 10-tier commission hierarchy allocates 80.00% of each downline member\'s eligible Monthly ROI across 10 generations of depth: Level 1: 20%, Level 2: 15%, Level 3: 10%, Level 4: 8%, Level 5: 7%, Level 6: 6%, Level 7: 5%, Level 8: 4%, Level 9: 3%, Level 10: 2%. Commissions are generated during the monthly cycle from finalized ROI, not from deposit principal. An isolated 5.00% Direct Sponsor Bonus is credited separately upon confirmed direct deposits.'
   },
   {
     cat: '10-Tier Referral Program',
     q: 'What is required to become "Qualified" for 10-tier commissions?',
-    a: 'To receive commissions from Tiers 1 through 10, an account must have at least two (2) direct active referrals who have funded confirmed deposits of at least $100 USD. The 5.00% direct sponsor bonus, however, is credited immediately without requiring tier qualification.'
+    a: 'Royal Bull Capital enforces Option A (Incremental Direct Qualification). Each ancestor independently qualifies for each tier: Level 1 requires at least 1 verified funded direct referral, Level 2 requires 2, Level 3 requires 3, incrementally through Level 10 requiring 10 verified funded direct referrals (min $100 USD deposit). If an ancestor does not qualify for a level, they receive $0 for that level without tree compression.'
   },
   {
     cat: '10-Tier Referral Program',

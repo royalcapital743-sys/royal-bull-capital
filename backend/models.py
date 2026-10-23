@@ -91,6 +91,7 @@ class Commission(Base):
     base_cents = Column(BigInteger, nullable=False)
     amount_cents = Column(BigInteger, nullable=False)
     idempotency_key = Column(String(128), unique=True, nullable=False, index=True)
+    month_key = Column(String(32), nullable=True, index=True)
     status = Column(String(32), default="credited", nullable=False)  # 'credited', 'reversed'
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
@@ -124,6 +125,7 @@ class MonthlyCycleRun(Base):
     total_eligible_deposits = Column(Integer, default=0, nullable=False)
     total_roi_cents = Column(BigInteger, default=0, nullable=False)
     total_principal_cents = Column(BigInteger, default=0, nullable=False)
+    total_commissions_cents = Column(BigInteger, default=0, nullable=False)
     status = Column(String(32), default="completed", nullable=False)
     executed_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 

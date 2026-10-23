@@ -165,12 +165,12 @@ export const ReferralProgram: React.FC = () => {
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">The Qualification Standard</h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400">Server-enforced proof of active participation</p>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Option A — Incremental Direct Qualification</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400">Independent level-by-level direct referral thresholds</p>
               </div>
             </div>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-              To unlock Level 1 through Level 10 multi-tier commissions, an account must sponsor at least two (2) direct active referrals who have completed funded deposits ($100 USD minimum).
+              To earn commissions at each tier, an ancestor must independently satisfy the direct-referral requirement for that specific level: Level 1 requires 1 verified funded direct, Level 2 requires 2, Level 3 requires 3, incrementally through Level 10 requiring 10 funded direct referrals ($100 USD minimum). Unqualified levels pay $0 without tree compression.
             </p>
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-white/5 text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 shrink-0" />
@@ -188,7 +188,7 @@ export const ReferralProgram: React.FC = () => {
             Important Program Governance Notice:
           </span>
           <p className="leading-relaxed">
-            Commissions are paid solely from actual, verified deposit activity across 10 ancestor tiers. Payouts require maintaining active qualification (at least two direct funded referrals). No guaranteed income, fixed commissions, or passive yields are promised or implied. All participation is governed by platform terms and compliance reviews.
+            10-level referral commissions are calculated and distributed during the monthly cycle strictly from downline users' finalized, eligible Monthly ROI—not from deposit amounts. Qualification is verified server-side on an incremental level-by-level basis. Direct sponsor bonus (5%) is an isolated upfront payment on direct deposits. No guaranteed income or passive yields are promised or implied.
           </p>
         </div>
       </div>
