@@ -52,7 +52,7 @@ export const Navbar: React.FC = () => {
                 ROYAL BULL
               </span>
               <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-[0.22em] text-slate-500 dark:text-slate-400 group-hover:text-amber-600 dark:group-hover:text-gold-300 transition-colors whitespace-nowrap">
-                CAPITAL · USD WEALTH
+                CAPITAL · AI ALGO TRADING
               </span>
             </div>
           </Link>

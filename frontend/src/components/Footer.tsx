@@ -19,17 +19,17 @@ export const Footer: React.FC = () => {
                   ROYAL BULL CAPITAL
                 </span>
                 <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-slate-500">
-                  TRADE | GROW | TOGETHER
+                  AI ALGO TRADING · FOREX FINANCIAL TECHNOLOGY
                 </span>
               </div>
             </Link>
             <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed max-w-sm">
-              Royal Bull Capital provides institutional-grade multi-tier referral management, automated ledger operations, and realtime portfolio performance tracking.
+              Royal Bull Capital provides institutional-grade AI algorithmic trading, forex automation, automated trade monitoring, and a server-authoritative 10-tier referral network.
             </p>
             <div className="flex items-center gap-4 text-xs text-slate-500 pt-2">
-              <span className="flex items-center gap-1"><Shield className="w-3.5 h-3.5 text-amber-600 dark:text-gold-500" /> Bank-grade Ledger</span>
-              <span className="flex items-center gap-1"><Lock className="w-3.5 h-3.5 text-amber-600 dark:text-gold-500" /> 256-Bit Security</span>
-              <span className="flex items-center gap-1"><Award className="w-3.5 h-3.5 text-amber-600 dark:text-gold-500" /> 10-Tier Cascades</span>
+              <span className="flex items-center gap-1"><Shield className="w-3.5 h-3.5 text-amber-600 dark:text-gold-500" /> Double-Entry Ledger</span>
+              <span className="flex items-center gap-1"><Lock className="w-3.5 h-3.5 text-amber-600 dark:text-gold-500" /> Enterprise Security</span>
+              <span className="flex items-center gap-1"><Award className="w-3.5 h-3.5 text-amber-600 dark:text-gold-500" /> 10-Tier Cascade</span>
             </div>
           </div>
 
@@ -71,8 +71,8 @@ export const Footer: React.FC = () => {
         {/* Regulatory & Risk Disclaimer */}
         <div className="mt-12 pt-8 border-t border-slate-200 dark:border-white/5 space-y-4">
           <div className="bg-white dark:bg-obsidian-900/60 p-4 rounded-xl border border-slate-200 dark:border-white/5 text-[11px] leading-relaxed text-slate-600 dark:text-slate-500 shadow-sm">
-            <strong className="text-slate-800 dark:text-slate-300 block mb-1">FINANCIAL RISK DISCLOSURE:</strong>
-            Foreign exchange trading carries high levels of risk to capital. Multi-tier commissions, double-entry wallet accounting, and returns are executed programmatically according to configured governance rules. Royal Bull Capital operates under strict institutional compliance, security, and audit protocols.
+            <strong className="text-slate-800 dark:text-slate-300 block mb-1">FINANCIAL & ALGORITHMIC RISK DISCLOSURE:</strong>
+            Foreign exchange and algorithmic trading involve significant risk to capital, including the possible loss of principal. The platform does not offer guaranteed profits, fixed returns, or capital guarantees. Multi-tier commissions, double-entry wallet accounting, and monthly cycle executions operate strictly in accordance with configured platform governance rules.
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
