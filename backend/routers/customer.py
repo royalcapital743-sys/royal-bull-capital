@@ -357,7 +357,7 @@ def create_withdrawal_request(
         is_early_withdrawal=is_early,
         month_key=current_month_key,
         status="pending",
-        payout_method=req.payout_method or "SWIFT_WIRE",
+        payout_method=req.payout_method or "BINANCE_PAY",
         payout_details=req.payout_details,
         created_at=now
     )

@@ -22,6 +22,13 @@ export const AdminWithdrawals: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedDetailId, setCopiedDetailId] = useState<string | null>(null);
+
+  const handleCopyDetails = (id: string, text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedDetailId(id);
+    setTimeout(() => setCopiedDetailId(null), 2000);
+  };
 
   const fetchWithdrawals = () => {
     setLoading(true);
@@ -199,8 +206,49 @@ export const AdminWithdrawals: React.FC = () => {
                       {formatMoney(w.amount_cents)}
                     </td>
                     <td className="py-3 px-3 font-sans">
-                      <div className="text-slate-200 font-semibold uppercase text-[11px]">{w.payout_method}</div>
-                      <div className="text-[11px] text-slate-400 font-mono max-w-[180px] truncate">{w.payout_details || '—'}</div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {w.payout_method === 'BINANCE_PAY' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold text-[10px] uppercase border border-amber-500/30">
+                            🟡 Binance Pay
+                          </span>
+                        ) : (
+                          <span className="text-slate-200 font-semibold uppercase text-[11px]">{w.payout_method}</span>
+                        )}
+                      </div>
+
+                      {w.payout_details ? (
+                        <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
+                          {w.payout_details.startsWith('http://') || w.payout_details.startsWith('https://') ? (
+                            <a
+                              href={w.payout_details}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gold-gradient text-obsidian-950 font-black text-[11px] hover:brightness-110 active:scale-95 transition-all shadow-sm"
+                              title="Open client's Binance Pay link directly to pay"
+                            >
+                              <span>Pay on Binance</span>
+                              <ArrowUpRight className="w-3.5 h-3.5" />
+                            </a>
+                          ) : (
+                            <span className="text-[11px] text-slate-300 font-mono bg-obsidian-900 px-2 py-0.5 rounded border border-white/5 max-w-[200px] truncate block">
+                              {w.payout_details}
+                            </span>
+                          )}
+                          <button
+                            onClick={() => handleCopyDetails(w.id, w.payout_details!)}
+                            title="Copy payment link / ID"
+                            className="p-1 rounded bg-white/5 hover:bg-white/10 text-slate-400 hover:text-gold-400 transition-colors"
+                          >
+                            {copiedDetailId === w.id ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="text-[11px] text-slate-500 mt-1">—</div>
+                      )}
                     </td>
                     <td className="py-3 px-3">
                       <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase inline-flex items-center gap-1.5 border ${

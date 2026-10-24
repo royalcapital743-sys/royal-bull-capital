@@ -147,7 +147,7 @@ class LedgerEntryResponse(BaseModel):
 # ----------------- Withdrawal Schemas -----------------
 class WithdrawalCreateRequest(BaseModel):
     amount_usd: float = Field(..., gt=0)
-    payout_method: Optional[str] = "SWIFT_WIRE"
+    payout_method: Optional[str] = "BINANCE_PAY"
     payout_details: Optional[str] = None
 
 class WithdrawalResponse(BaseModel):

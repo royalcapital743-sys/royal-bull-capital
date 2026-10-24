@@ -19,7 +19,7 @@ export const Withdrawals: React.FC = () => {
   const { wallet, refreshProfile } = useAuth();
   const [withdrawals, setWithdrawals] = useState<WithdrawalType[]>([]);
   const [amountUsd, setAmountUsd] = useState<number>(100);
-  const [payoutMethod, setPayoutMethod] = useState('SWIFT_WIRE');
+  const [payoutMethod, setPayoutMethod] = useState('BINANCE_PAY');
   const [payoutDetails, setPayoutDetails] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +54,7 @@ export const Withdrawals: React.FC = () => {
         payout_method: payoutMethod,
         payout_details: payoutDetails.trim() || undefined,
       });
-      setSuccess(`Withdrawal request of $${amountUsd.toFixed(2)} USD submitted for administrative compliance review.`);
+      setSuccess(`Withdrawal request of $${amountUsd.toFixed(2)} USD submitted. Admin will disburse payout via ${payoutMethod === 'BINANCE_PAY' ? 'Binance Pay' : payoutMethod}.`);
       setPayoutDetails('');
       fetchWithdrawals();
       refreshProfile();
@@ -119,33 +119,68 @@ export const Withdrawals: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
-                Payout Rail
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
+                  Payout Rail
+                </label>
+                {payoutMethod === 'BINANCE_PAY' && (
+                  <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/30">
+                    ⚡ Instant & Zero Fee
+                  </span>
+                )}
+              </div>
               <select
                 value={payoutMethod}
                 onChange={(e) => setPayoutMethod(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-gold-500"
+                className="w-full bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-gold-500 font-medium"
               >
+                <option value="BINANCE_PAY">Binance Pay / Wallet Link (Recommended — Instant & 0% Fee)</option>
+                <option value="USDT_TRC20">USDT (TRC-20 Network Address)</option>
+                <option value="USDT_BEP20">USDT (BEP-20 BNB Smart Chain)</option>
                 <option value="SWIFT_WIRE">USD International Fedwire / SWIFT</option>
-                <option value="USD_DIGITAL_CUSTODY">USD Digital Reserve Settlement (1:1 USD)</option>
                 <option value="BANK_CLEARING">USD Prime Bank Clearing Desk (ACH / Domestic)</option>
               </select>
             </div>
 
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
-                USD Destination Details
+                {payoutMethod === 'BINANCE_PAY' 
+                  ? 'Binance Pay Wallet Link or Binance Pay ID'
+                  : payoutMethod.startsWith('USDT')
+                  ? 'USDT Receiving Wallet Address'
+                  : 'USD Destination Details'}
               </label>
               <textarea
                 rows={2}
                 required
                 value={payoutDetails}
                 onChange={(e) => setPayoutDetails(e.target.value)}
-                placeholder="Beneficiary USD Account Number / ABA Routing / Fedwire Bank Details"
+                placeholder={
+                  payoutMethod === 'BINANCE_PAY'
+                    ? 'Paste your Binance Pay Link (https://app.binance.com/qr/...) or 9-digit Binance Pay ID'
+                    : payoutMethod === 'USDT_TRC20'
+                    ? 'Paste your Tron TRC-20 USDT address (starts with T...)'
+                    : payoutMethod === 'USDT_BEP20'
+                    ? 'Paste your BNB Chain BEP-20 USDT address (starts with 0x...)'
+                    : 'Beneficiary USD Account Number / ABA Routing / Fedwire Bank Details'
+                }
                 className="w-full bg-slate-50 dark:bg-obsidian-900 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-gold-500 resize-none font-mono"
               />
             </div>
+
+            {payoutMethod === 'BINANCE_PAY' && (
+              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-slate-700 dark:text-slate-300 space-y-2">
+                <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400 font-bold">
+                  <span className="text-sm">🟡</span>
+                  <span>How to get your Binance Pay Link:</span>
+                </div>
+                <ol className="list-decimal list-inside space-y-1 text-[11px] text-slate-600 dark:text-slate-400">
+                  <li>Open your <strong>Binance App</strong> &rarr; tap <strong>Pay</strong> (or <strong>Receive</strong>).</li>
+                  <li>Tap <strong>Share Link</strong> or copy your <strong>Binance Pay ID</strong>.</li>
+                  <li>Paste the link/ID above so Admin can disburse your payout with 1-click on Binance.</li>
+                </ol>
+              </div>
+            )}
 
             <div className="p-3.5 rounded-xl bg-slate-100 dark:bg-obsidian-900/60 border border-slate-200 dark:border-white/5 text-[11px] text-slate-600 dark:text-slate-400 space-y-1">
               <div className="flex items-center gap-1.5 text-amber-700 dark:text-gold-400 font-semibold">
@@ -233,7 +268,15 @@ export const Withdrawals: React.FC = () => {
                             <span>{w.status}</span>
                           </span>
                         </td>
-                        <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400 font-sans text-[11px]">{w.payout_method}</td>
+                        <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400 font-sans text-[11px]">
+                          {w.payout_method === 'BINANCE_PAY' ? (
+                            <span className="inline-flex items-center gap-1 font-bold text-amber-700 dark:text-amber-400">
+                              <span>🟡</span> Binance Pay
+                            </span>
+                          ) : (
+                            w.payout_method
+                          )}
+                        </td>
                         <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400 font-sans text-[11px]">
                           {w.rejection_reason || (w.reviewed_at ? `Approved ${formatDateTime(w.reviewed_at)}` : 'Awaiting review')}
                         </td>
