@@ -53,7 +53,4 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: royal-bull-backend
-          property: host
+        value: https://royal-bull-backend-l92k.onrender.com

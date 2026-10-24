@@ -3,6 +3,20 @@ let normalizedBase = rawApiUrl;
 if (normalizedBase && !normalizedBase.startsWith('http://') && !normalizedBase.startsWith('https://')) {
   normalizedBase = `https://${normalizedBase}`;
 }
+
+// Automatically resolve Render internal service hostnames (e.g., royal-bull-backend-l92k -> .onrender.com)
+try {
+  if (normalizedBase) {
+    const parsed = new URL(normalizedBase);
+    if (!parsed.hostname.includes('.') && parsed.hostname !== 'localhost' && parsed.hostname !== '127.0.0.1') {
+      parsed.hostname = `${parsed.hostname}.onrender.com`;
+      normalizedBase = parsed.origin;
+    }
+  }
+} catch {
+  // Ignore fallback if URL parsing fails
+}
+
 const API_BASE = normalizedBase 
   ? (normalizedBase.endsWith('/api') ? normalizedBase : `${normalizedBase}/api`) 
   : '/api';
