@@ -24,7 +24,7 @@ services:
       - key: PORT
         value: 10000
       - key: DATABASE_URL
-        value: sqlite:///./royal_bull_capital.db
+        value: postgresql://royal_bull_user:1xuZVZ9tYE6LRhRMu2OpXacUYLsfb2im@dpg-dbe5027avr4c73a44tc0-a.oregon-postgres.render.com/royal_bull
       - key: JWT_SECRET_KEY
         generateValue: true
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
