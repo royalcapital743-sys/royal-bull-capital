@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Lock, Mail, ArrowRight, AlertCircle, ShieldCheck } from 'lucide-react';
+import { Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
 
 export const Login: React.FC = () => {
   const { login } = useAuth();
@@ -31,11 +31,6 @@ export const Login: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleFillAdmin = () => {
-    setEmail('admin@royalbull.com');
-    setPassword('Admin123!');
   };
 
 
@@ -101,17 +96,6 @@ export const Login: React.FC = () => {
           </button>
         </form>
 
-        {/* Superadmin Quick Access */}
-        <div className="pt-2">
-          <button
-            type="button"
-            onClick={handleFillAdmin}
-            className="w-full py-2.5 px-3 rounded-xl bg-obsidian-900 hover:bg-obsidian-850 text-amber-400 border border-amber-500/30 hover:border-amber-500/50 text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-sm group"
-          >
-            <ShieldCheck className="w-3.5 h-3.5 text-gold-400 group-hover:scale-110 transition-transform" />
-            <span>Fill Superadmin Credentials (`admin@royalbull.com`)</span>
-          </button>
-        </div>
 
         <div className="text-center text-xs text-slate-400 pt-4 border-t border-white/10">
           Don't have an account yet?{' '}
