@@ -2,7 +2,7 @@ import json
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Response
 from sqlalchemy.orm import Session
 from database import get_db
 import models
@@ -11,6 +11,7 @@ import security
 from commission_engine import process_deposit_commissions, process_deposit_direct_bonus
 from cycle_engine import run_monthly_cycle
 import accounting
+import exporter
 
 router = APIRouter(prefix="/api/admin", tags=["Admin Console"])
 
@@ -646,4 +647,56 @@ def reverse_journal_entry_endpoint(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
+
+# ----------------- Database Backup & Export Endpoints -----------------
+
+@router.get("/export/summary")
+def get_export_summary_endpoint(
+    admin: models.User = Depends(security.require_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Returns live table record counts and metadata before downloading an export.
+    """
+    return exporter.get_database_summary(db)
+
+@router.get("/export/sql")
+def export_postgres_sql_endpoint(
+    admin: models.User = Depends(security.require_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Generates a full PostgreSQL-compatible SQL dump file containing schema-compliant
+    INSERT statements with ON CONFLICT resolution, safe for re-import into PostgreSQL.
+    """
+    sql_content = exporter.generate_postgres_sql_dump(db)
+    filename = f"royalbull_postgres_backup_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.sql"
+    return Response(
+        content=sql_content,
+        media_type="application/sql",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Cache-Control": "no-cache, no-store, must-revalidate"
+        }
+    )
+
+@router.get("/export/json")
+def export_json_snapshot_endpoint(
+    admin: models.User = Depends(security.require_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Generates a complete JSON snapshot of all database tables.
+    """
+    data = exporter.generate_json_snapshot(db)
+    filename = f"royalbull_snapshot_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
+    json_bytes = json.dumps(data, indent=2).encode("utf-8")
+    return Response(
+        content=json_bytes,
+        media_type="application/json",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Cache-Control": "no-cache, no-store, must-revalidate"
+        }
+    )
 

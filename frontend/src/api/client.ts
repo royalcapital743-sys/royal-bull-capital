@@ -167,3 +167,31 @@ class ApiClient {
 }
 
 export const api = new ApiClient();
+
+export async function downloadExportFile(endpoint: string, defaultFilename: string): Promise<void> {
+  const token = localStorage.getItem('royalbull_access_token');
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  const res = await fetch(`${API_BASE}${endpoint}`, { headers });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Download failed' }));
+    throw new Error(err.detail || err.message || 'Download failed');
+  }
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const disposition = res.headers.get('content-disposition');
+  let filename = defaultFilename;
+  if (disposition && disposition.includes('filename=')) {
+    const match = disposition.match(/filename="?([^"]+)"?/);
+    if (match && match[1]) filename = match[1];
+  }
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+}

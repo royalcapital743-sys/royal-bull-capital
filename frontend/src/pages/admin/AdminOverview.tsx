@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, formatMoney } from '../../api/client';
+import { api, formatMoney, downloadExportFile } from '../../api/client';
 import { AdminLayout } from '../../components/AdminLayout';
 import { 
   Sliders, 
@@ -15,7 +15,12 @@ import {
   ShieldAlert,
   AlertTriangle,
   ArrowRight,
-  Clock
+  Clock,
+  Download,
+  Database,
+  FileCode2,
+  X,
+  HardDrive
 } from 'lucide-react';
 
 interface AdminStats {
@@ -36,6 +41,11 @@ export const AdminOverview: React.FC = () => {
   const [cycleLoading, setCycleLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  // Database Export State
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportSummary, setExportSummary] = useState<any>(null);
+  const [exportLoading, setExportLoading] = useState<string | null>(null);
 
   const fetchStats = () => {
     setLoading(true);
@@ -79,8 +89,47 @@ export const AdminOverview: React.FC = () => {
     }
   };
 
+  const handleOpenExportModal = () => {
+    setShowExportModal(true);
+    api.get('/admin/export/summary')
+      .then(setExportSummary)
+      .catch(err => console.warn('Could not load export summary:', err));
+  };
+
+  const handleDownloadSql = async () => {
+    setExportLoading('sql');
+    try {
+      await downloadExportFile('/admin/export/sql', `royalbull_postgres_backup_${new Date().toISOString().slice(0, 10)}.sql`);
+      setMessage('PostgreSQL SQL dump downloaded successfully.');
+    } catch (err: any) {
+      alert(err.message || 'Failed to download SQL dump.');
+    } finally {
+      setExportLoading(null);
+    }
+  };
+
+  const handleDownloadJson = async () => {
+    setExportLoading('json');
+    try {
+      await downloadExportFile('/admin/export/json', `royalbull_snapshot_${new Date().toISOString().slice(0, 10)}.json`);
+      setMessage('Full JSON database snapshot downloaded successfully.');
+    } catch (err: any) {
+      alert(err.message || 'Failed to download JSON snapshot.');
+    } finally {
+      setExportLoading(null);
+    }
+  };
+
   const actionButtons = (
     <>
+      <button
+        onClick={handleOpenExportModal}
+        className="inline-flex items-center gap-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm"
+      >
+        <Download className="w-3.5 h-3.5" />
+        <span>Export & Backup Data</span>
+      </button>
+
       <button
         onClick={handleRunMonthlyCycle}
         disabled={cycleLoading}
@@ -336,6 +385,129 @@ export const AdminOverview: React.FC = () => {
           </p>
         </Link>
       </div>
+
+      {/* Export & Backup Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-obsidian-950/80 backdrop-blur-md animate-fadeIn">
+          <div className="w-full max-w-2xl glass-panel rounded-3xl border border-emerald-500/30 shadow-2xl overflow-hidden p-6 sm:p-8 space-y-6 relative">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-5">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                  <Database className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-display font-bold text-white flex items-center gap-2">
+                    <span>Export & Backup Database</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wide">
+                      PostgreSQL Ready
+                    </span>
+                  </h2>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Avoid data loss by exporting a clean snapshot formatted to feed directly into PostgreSQL in the future.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowExportModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-xl hover:bg-white/5 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Live Table Counts Summary */}
+            {exportSummary && (
+              <div className="p-4 rounded-2xl bg-obsidian-900 border border-white/10 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                    <HardDrive className="w-3.5 h-3.5 text-gold-400" />
+                    <span>Database Engine: <strong className="text-white uppercase">{exportSummary.database_type}</strong></span>
+                  </span>
+                  <span className="text-emerald-400 font-bold">
+                    {exportSummary.total_records} Total Records Active
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 pt-1 text-[11px]">
+                  <div className="bg-obsidian-850 p-2 rounded-lg border border-white/5">
+                    <div className="text-slate-400">Users</div>
+                    <div className="text-sm font-bold text-white">{exportSummary.table_counts?.users ?? 0}</div>
+                  </div>
+                  <div className="bg-obsidian-850 p-2 rounded-lg border border-white/5">
+                    <div className="text-slate-400">Wallets</div>
+                    <div className="text-sm font-bold text-white">{exportSummary.table_counts?.wallets ?? 0}</div>
+                  </div>
+                  <div className="bg-obsidian-850 p-2 rounded-lg border border-white/5">
+                    <div className="text-slate-400">Deposits</div>
+                    <div className="text-sm font-bold text-white">{exportSummary.table_counts?.deposits ?? 0}</div>
+                  </div>
+                  <div className="bg-obsidian-850 p-2 rounded-lg border border-white/5">
+                    <div className="text-slate-400">Commissions</div>
+                    <div className="text-sm font-bold text-white">{exportSummary.table_counts?.commissions ?? 0}</div>
+                  </div>
+                  <div className="bg-obsidian-850 p-2 rounded-lg border border-white/5">
+                    <div className="text-slate-400">Ledger</div>
+                    <div className="text-sm font-bold text-white">{exportSummary.table_counts?.ledger ?? 0}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Export Format Options */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              {/* Option 1: PostgreSQL SQL Dump */}
+              <div className="p-5 rounded-2xl bg-gradient-to-b from-emerald-500/10 to-obsidian-900 border border-emerald-500/30 flex flex-col justify-between space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+                    <FileCode2 className="w-4 h-4" />
+                    <span>PostgreSQL SQL Dump (.sql)</span>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Standard ANSI SQL statements wrapped in an atomic <code className="text-gold-400 bg-obsidian-950 px-1 py-0.5 rounded">BEGIN...COMMIT</code> transaction with <code className="text-gold-400 bg-obsidian-950 px-1 py-0.5 rounded">ON CONFLICT</code> handling. Ready to restore into any PostgreSQL instance.
+                  </p>
+                </div>
+                <button
+                  onClick={handleDownloadSql}
+                  disabled={exportLoading === 'sql'}
+                  className="w-full bg-emerald-500 hover:bg-emerald-400 text-obsidian-950 font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg transition-all disabled:opacity-50"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>{exportLoading === 'sql' ? 'Generating SQL...' : 'Download PostgreSQL .sql'}</span>
+                </button>
+              </div>
+
+              {/* Option 2: JSON Snapshot */}
+              <div className="p-5 rounded-2xl bg-gradient-to-b from-blue-500/10 to-obsidian-900 border border-blue-500/30 flex flex-col justify-between space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-blue-400 font-bold text-sm">
+                    <Database className="w-4 h-4" />
+                    <span>Full JSON Snapshot (.json)</span>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Structured multi-table JSON archive with full column mappings, timestamps, and row counts. Ideal for offline audits, scripting, or database migration pipelines.
+                  </p>
+                </div>
+                <button
+                  onClick={handleDownloadJson}
+                  disabled={exportLoading === 'json'}
+                  className="w-full bg-blue-500 hover:bg-blue-400 text-obsidian-950 font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg transition-all disabled:opacity-50"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>{exportLoading === 'json' ? 'Exporting JSON...' : 'Download JSON Archive'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Restore Command Guide */}
+            <div className="p-4 rounded-2xl bg-obsidian-900 border border-white/5 space-y-1.5 text-xs">
+              <div className="font-semibold text-slate-300">How to restore this file into PostgreSQL in the future:</div>
+              <div className="font-mono text-[11px] text-gold-400 bg-obsidian-950 p-2.5 rounded-xl border border-white/5 overflow-x-auto select-all">
+                psql -U royalbull_user -d royalbull_db -f royalbull_postgres_backup_YYYYMMDD.sql
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </AdminLayout>
   );
